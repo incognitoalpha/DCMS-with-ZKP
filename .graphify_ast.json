@@ -1,0 +1,1421 @@
+{
+  "nodes": [
+    {
+      "id": "contracts_hardhat_config_js",
+      "label": "hardhat.config.js",
+      "file_type": "code",
+      "source_file": "contracts\\hardhat.config.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "contracts_scripts_deploy_js",
+      "label": "deploy.js",
+      "file_type": "code",
+      "source_file": "contracts\\scripts\\deploy.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_deploy_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "contracts\\scripts\\deploy.js",
+      "source_location": "L5"
+    },
+    {
+      "id": "contracts_test_dcms_test_js",
+      "label": "DCMS.test.js",
+      "file_type": "code",
+      "source_file": "contracts\\test\\DCMS.test.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "test_dcms_test_deploy",
+      "label": "deploy()",
+      "file_type": "code",
+      "source_file": "contracts\\test\\DCMS.test.js",
+      "source_location": "L6"
+    },
+    {
+      "id": "frontend_next_env_d_ts",
+      "label": "next-env.d.ts",
+      "file_type": "code",
+      "source_file": "frontend\\next-env.d.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "frontend_next_config_mjs",
+      "label": "next.config.mjs",
+      "file_type": "code",
+      "source_file": "frontend\\next.config.mjs",
+      "source_location": "L1"
+    },
+    {
+      "id": "frontend_postcss_config_mjs",
+      "label": "postcss.config.mjs",
+      "file_type": "code",
+      "source_file": "frontend\\postcss.config.mjs",
+      "source_location": "L1"
+    },
+    {
+      "id": "frontend_tailwind_config_ts",
+      "label": "tailwind.config.ts",
+      "file_type": "code",
+      "source_file": "frontend\\tailwind.config.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "frontend_src_app_layout_tsx",
+      "label": "layout.tsx",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\layout.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_layout_rootlayout",
+      "label": "RootLayout()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\layout.tsx",
+      "source_location": "L12"
+    },
+    {
+      "id": "frontend_src_app_page_tsx",
+      "label": "page.tsx",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "frontend_src_app_activity_page_tsx",
+      "label": "page.tsx",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "activity_page_backfill",
+      "label": "backfill()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L25"
+    },
+    {
+      "id": "activity_page_onbookingcreated",
+      "label": "onBookingCreated()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L143"
+    },
+    {
+      "id": "activity_page_onbookingcancelled",
+      "label": "onBookingCancelled()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L153"
+    },
+    {
+      "id": "activity_page_onproposalcreated",
+      "label": "onProposalCreated()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L163"
+    },
+    {
+      "id": "activity_page_onvoted",
+      "label": "onVoted()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L173"
+    },
+    {
+      "id": "activity_page_onresourceadded",
+      "label": "onResourceAdded()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L183"
+    },
+    {
+      "id": "activity_page_onreputation",
+      "label": "onReputation()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L193"
+    },
+    {
+      "id": "frontend_src_app_admin_page_tsx",
+      "label": "page.tsx",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "admin_page_add",
+      "label": "add()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L44"
+    },
+    {
+      "id": "admin_page_toggle",
+      "label": "toggle()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L67"
+    },
+    {
+      "id": "frontend_src_app_bookings_page_tsx",
+      "label": "page.tsx",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "bookings_page_claim",
+      "label": "claim()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L85"
+    },
+    {
+      "id": "bookings_page_cancel",
+      "label": "cancel()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L101"
+    },
+    {
+      "id": "bookings_page_fmttime",
+      "label": "fmtTime()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L185"
+    },
+    {
+      "id": "frontend_src_app_governance_page_tsx",
+      "label": "page.tsx",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "governance_page_createproposal",
+      "label": "createProposal()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L59"
+    },
+    {
+      "id": "governance_page_vote",
+      "label": "vote()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L81"
+    },
+    {
+      "id": "governance_page_execute",
+      "label": "execute()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L97"
+    },
+    {
+      "id": "frontend_src_app_resources_page_tsx",
+      "label": "page.tsx",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "resources_page_fmteth",
+      "label": "fmtEth()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L151"
+    },
+    {
+      "id": "resources_page_submit",
+      "label": "submit()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L225"
+    },
+    {
+      "id": "frontend_src_components_navbar_tsx",
+      "label": "Navbar.tsx",
+      "file_type": "code",
+      "source_file": "frontend\\src\\components\\Navbar.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "frontend_src_components_toast_tsx",
+      "label": "Toast.tsx",
+      "file_type": "code",
+      "source_file": "frontend\\src\\components\\Toast.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "components_toast_toast",
+      "label": "toast()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\components\\Toast.tsx",
+      "source_location": "L9"
+    },
+    {
+      "id": "frontend_src_lib_format_ts",
+      "label": "format.ts",
+      "file_type": "code",
+      "source_file": "frontend\\src\\lib\\format.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "lib_format_fmteth",
+      "label": "fmtEth()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\lib\\format.ts",
+      "source_location": "L3"
+    },
+    {
+      "id": "lib_format_fmttime",
+      "label": "fmtTime()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\lib\\format.ts",
+      "source_location": "L11"
+    },
+    {
+      "id": "lib_format_tolocalinput",
+      "label": "toLocalInput()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\lib\\format.ts",
+      "source_location": "L18"
+    },
+    {
+      "id": "lib_format_fromlocalinput",
+      "label": "fromLocalInput()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\lib\\format.ts",
+      "source_location": "L26"
+    },
+    {
+      "id": "lib_format_parserevert",
+      "label": "parseRevert()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\lib\\format.ts",
+      "source_location": "L30"
+    },
+    {
+      "id": "frontend_src_lib_wallet_tsx",
+      "label": "wallet.tsx",
+      "file_type": "code",
+      "source_file": "frontend\\src\\lib\\wallet.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "lib_wallet_walletprovider",
+      "label": "WalletProvider()",
+      "file_type": "code",
+      "source_file": "frontend\\src\\lib\\wallet.tsx",
+      "source_location": "L49"
+    }
+  ],
+  "edges": [
+    {
+      "source": "contracts_scripts_deploy_js",
+      "target": "scripts_deploy_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "contracts\\scripts\\deploy.js",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "contracts_test_dcms_test_js",
+      "target": "test_dcms_test_deploy",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "contracts\\test\\DCMS.test.js",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_tailwind_config_ts",
+      "target": "tailwindcss",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\tailwind.config.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_layout_tsx",
+      "target": "next",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\layout.tsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_layout_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_app_globals_css",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\layout.tsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_layout_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_components_navbar",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\layout.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_layout_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_components_toast",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\layout.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_layout_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_lib_wallet",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\layout.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_layout_tsx",
+      "target": "lib_wallet_walletprovider",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\layout.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_layout_tsx",
+      "target": "app_layout_rootlayout",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\layout.tsx",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_page_tsx",
+      "target": "link",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\page.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_page_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_lib_wallet",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\page.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_page_tsx",
+      "target": "lib_wallet_usewallet",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\page.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_page_tsx",
+      "target": "lib_wallet_shortaddr",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\page.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_activity_page_tsx",
+      "target": "react",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_activity_page_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_lib_wallet",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_activity_page_tsx",
+      "target": "lib_wallet_usewallet",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_activity_page_tsx",
+      "target": "lib_wallet_shortaddr",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_activity_page_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_lib_format",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_activity_page_tsx",
+      "target": "lib_format_fmteth",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_activity_page_tsx",
+      "target": "lib_format_fmttime",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_activity_page_tsx",
+      "target": "activity_page_backfill",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_activity_page_tsx",
+      "target": "activity_page_onbookingcreated",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L143",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_activity_page_tsx",
+      "target": "activity_page_onbookingcancelled",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_activity_page_tsx",
+      "target": "activity_page_onproposalcreated",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L163",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_activity_page_tsx",
+      "target": "activity_page_onvoted",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L173",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_activity_page_tsx",
+      "target": "activity_page_onresourceadded",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_activity_page_tsx",
+      "target": "activity_page_onreputation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\activity\\page.tsx",
+      "source_location": "L193",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_admin_page_tsx",
+      "target": "react",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_admin_page_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_lib_wallet",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_admin_page_tsx",
+      "target": "lib_wallet_usewallet",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_admin_page_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_lib_format",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_admin_page_tsx",
+      "target": "lib_format_fmteth",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_admin_page_tsx",
+      "target": "lib_format_parserevert",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_admin_page_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_components_toast",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_admin_page_tsx",
+      "target": "components_toast_toast",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_admin_page_tsx",
+      "target": "ethers",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_admin_page_tsx",
+      "target": "admin_page_add",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_admin_page_tsx",
+      "target": "admin_page_toggle",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_bookings_page_tsx",
+      "target": "react",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_bookings_page_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_lib_wallet",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_bookings_page_tsx",
+      "target": "lib_wallet_usewallet",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_bookings_page_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_lib_format",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_bookings_page_tsx",
+      "target": "lib_format_fmteth",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_bookings_page_tsx",
+      "target": "lib_format_fmttime",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_bookings_page_tsx",
+      "target": "lib_format_parserevert",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_bookings_page_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_components_toast",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_bookings_page_tsx",
+      "target": "components_toast_toast",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_bookings_page_tsx",
+      "target": "bookings_page_claim",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L85",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_bookings_page_tsx",
+      "target": "bookings_page_cancel",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_bookings_page_tsx",
+      "target": "bookings_page_fmttime",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L185",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_governance_page_tsx",
+      "target": "react",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_governance_page_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_lib_wallet",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_governance_page_tsx",
+      "target": "lib_wallet_usewallet",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_governance_page_tsx",
+      "target": "lib_wallet_shortaddr",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_governance_page_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_lib_format",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_governance_page_tsx",
+      "target": "lib_format_fmttime",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_governance_page_tsx",
+      "target": "lib_format_parserevert",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_governance_page_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_components_toast",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_governance_page_tsx",
+      "target": "components_toast_toast",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_governance_page_tsx",
+      "target": "governance_page_createproposal",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_governance_page_tsx",
+      "target": "governance_page_vote",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_governance_page_tsx",
+      "target": "governance_page_execute",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_resources_page_tsx",
+      "target": "react",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_resources_page_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_lib_wallet",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_resources_page_tsx",
+      "target": "lib_wallet_usewallet",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_resources_page_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_lib_format",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_resources_page_tsx",
+      "target": "lib_format_fmteth",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_resources_page_tsx",
+      "target": "lib_format_fmttime",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_resources_page_tsx",
+      "target": "lib_format_tolocalinput",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_resources_page_tsx",
+      "target": "lib_format_fromlocalinput",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_resources_page_tsx",
+      "target": "lib_format_parserevert",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_resources_page_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_components_toast",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_resources_page_tsx",
+      "target": "components_toast_toast",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_resources_page_tsx",
+      "target": "resources_page_fmteth",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_app_resources_page_tsx",
+      "target": "resources_page_submit",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L225",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_components_navbar_tsx",
+      "target": "link",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\components\\Navbar.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_components_navbar_tsx",
+      "target": "navigation",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\components\\Navbar.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_components_navbar_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_lib_wallet",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\components\\Navbar.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_components_navbar_tsx",
+      "target": "lib_wallet_usewallet",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\components\\Navbar.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_components_navbar_tsx",
+      "target": "lib_wallet_shortaddr",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\components\\Navbar.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_components_toast_tsx",
+      "target": "react",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\components\\Toast.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_components_toast_tsx",
+      "target": "components_toast_toast",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\components\\Toast.tsx",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_components_toast_tsx",
+      "target": "components_toast_toast",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\components\\Toast.tsx",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_lib_format_ts",
+      "target": "ethers",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\lib\\format.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_lib_format_ts",
+      "target": "lib_format_fmteth",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\lib\\format.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_lib_format_ts",
+      "target": "lib_format_fmttime",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\lib\\format.ts",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_lib_format_ts",
+      "target": "lib_format_tolocalinput",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\lib\\format.ts",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_lib_format_ts",
+      "target": "lib_format_fromlocalinput",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\lib\\format.ts",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_lib_format_ts",
+      "target": "lib_format_parserevert",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\lib\\format.ts",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_lib_wallet_tsx",
+      "target": "react",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\lib\\wallet.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_lib_wallet_tsx",
+      "target": "ethers",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\lib\\wallet.tsx",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_lib_wallet_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_lib_contract_dcms_json",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\lib\\wallet.tsx",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_lib_wallet_tsx",
+      "target": "c_users_sarth_desktop_blockchain_el_frontend_src_lib_contract_address_json",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\lib\\wallet.tsx",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "frontend_src_lib_wallet_tsx",
+      "target": "lib_wallet_walletprovider",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend\\src\\lib\\wallet.tsx",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "admin_page_add",
+      "target": "components_toast_toast",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "admin_page_add",
+      "target": "lib_format_parserevert",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "admin_page_toggle",
+      "target": "components_toast_toast",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "admin_page_toggle",
+      "target": "lib_format_parserevert",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend\\src\\app\\admin\\page.tsx",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "bookings_page_claim",
+      "target": "components_toast_toast",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "bookings_page_claim",
+      "target": "lib_format_parserevert",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "bookings_page_cancel",
+      "target": "components_toast_toast",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
+      "source": "bookings_page_cancel",
+      "target": "lib_format_parserevert",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend\\src\\app\\bookings\\page.tsx",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "governance_page_createproposal",
+      "target": "components_toast_toast",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "governance_page_createproposal",
+      "target": "lib_format_parserevert",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "governance_page_vote",
+      "target": "components_toast_toast",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "governance_page_vote",
+      "target": "lib_format_parserevert",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "governance_page_execute",
+      "target": "components_toast_toast",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L102",
+      "weight": 1.0
+    },
+    {
+      "source": "governance_page_execute",
+      "target": "lib_format_parserevert",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend\\src\\app\\governance\\page.tsx",
+      "source_location": "L107",
+      "weight": 1.0
+    },
+    {
+      "source": "resources_page_submit",
+      "target": "components_toast_toast",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L228",
+      "weight": 1.0
+    },
+    {
+      "source": "resources_page_submit",
+      "target": "lib_format_parserevert",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "frontend\\src\\app\\resources\\page.tsx",
+      "source_location": "L239",
+      "weight": 1.0
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}
