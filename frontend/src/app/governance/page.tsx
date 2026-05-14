@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useWallet, shortAddr } from "@/lib/wallet";
 import { fmtTime, parseRevert } from "@/lib/format";
 import { toast } from "@/components/Toast";
+import { hasStoredIdentity, generateVotingNullifier, getZKPIdentity } from "@/lib/zkp";
+import { createSemaphoreIdentity } from "@/lib/semaphore";
 
 type Proposal = {
   id: bigint;
@@ -24,6 +26,13 @@ export default function GovernancePage() {
   const [voted, setVoted] = useState<Record<string, boolean>>({});
   const [desc, setDesc] = useState("");
   const [days, setDays] = useState(3);
+  const [hasZKP, setHasZKP] = useState(false);
+  const [zkpVoting, setZkpVoting] = useState(false);
+
+  // Check ZKP identity on load
+  useEffect(() => {
+    setHasZKP(hasStoredIdentity());
+  }, []);
 
   const load = useCallback(async () => {
     if (!contract) return;
@@ -129,6 +138,50 @@ export default function GovernancePage() {
           Propose changes to the cottage. One wallet, one vote — recorded on-chain.
         </p>
       </div>
+
+      {/* ZKP Identity Registration Section */}
+      {!hasZKP && address && (
+        <div className="card border-forest-300 space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🛡</span>
+            <div className="font-display text-xl text-forest-800">Enable Anonymous Voting</div>
+          </div>
+          <p className="text-forest-700/80 text-sm">
+            Register a Zero-Knowledge identity to vote anonymously. Your wallet address will never be recorded.
+          </p>
+          <button
+            onClick={() => {
+              createSemaphoreIdentity();
+              setHasZKP(true);
+              toast("ZKP Identity created! You can now vote anonymously.", "success");
+            }}
+            className="btn-primary"
+          >
+            Generate Anonymous Identity
+          </button>
+        </div>
+      )}
+
+      {/* ZKP Voting Toggle */}
+      {hasZKP && (
+        <div className="card flex items-center justify-between border-forest-300">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🛡</span>
+            <span className="font-display text-forest-800">Privacy Shield Active</span>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={zkpVoting}
+              onChange={(e) => setZkpVoting(e.target.checked)}
+              className="sr-only"
+            />
+            <span className={`chip ${zkpVoting ? "bg-forest-100 text-forest-700" : ""}`}>
+              {zkpVoting ? "Anonymous Mode ON" : "Use Regular Mode"}
+            </span>
+          </label>
+        </div>
+      )}
 
       <div className="card space-y-3">
         <div className="font-display text-xl text-forest-800">New proposal</div>

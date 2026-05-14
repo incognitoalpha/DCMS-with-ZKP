@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useWallet } from "@/lib/wallet";
 import { fmtEth, fmtTime, parseRevert } from "@/lib/format";
 import { toast } from "@/components/Toast";
+import { hasStoredIdentity, generateRandomSecret, generateBookingCommitment, generateBookingNullifier, getZKPIdentity } from "@/lib/zkp";
 
 type Booking = {
   id: bigint;
@@ -33,6 +34,30 @@ export default function BookingsPage() {
   const [claimedMap, setClaimedMap] = useState<Record<string, boolean>>({});
   const [tokenUris, setTokenUris] = useState<Record<string, string>>({});
   const [showReceipt, setShowReceipt] = useState<{ id: string; uri: string } | null>(null);
+  const [zkpMode, setZkpMode] = useState(false);
+  const [hasZKP, setHasZKP] = useState(false);
+
+  // Check ZKP identity on load
+  useEffect(() => {
+    setHasZKP(hasStoredIdentity());
+  }, []);
+
+  // Check if ZKP contract functions are available
+  const supportsZKP = useCallback(async () => {
+    if (!contract) return false;
+    try {
+      await contract.bookResourceZKP(
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
+        1, 0, 0,
+        [0,0,0,0,0,0,0,0]
+      );
+      return false;
+    } catch (e: any) {
+      // If it's not a function error, ZKP might be available
+      return !e.message?.includes('not a function');
+    }
+  }, [contract]);
 
   const load = useCallback(async () => {
     if (!contract || !address) return;
@@ -145,6 +170,31 @@ export default function BookingsPage() {
             <div className="font-display text-xl text-forest-800">{String(reputation)} pts</div>
           </div>
         </div>
+
+        {/* ZKP Privacy Mode Toggle */}
+        {hasZKP && (
+          <div className="card flex items-center gap-3 py-3 border-forest-300">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-bark text-cream-50 font-display text-lg">
+              🛡
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-wide text-forest-700/60">
+                Privacy Shield
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={zkpMode}
+                  onChange={(e) => setZkpMode(e.target.checked)}
+                  className="sr-only"
+                />
+                <span className={`font-display text-lg ${zkpMode ? "text-forest-800" : "text-forest-400"}`}>
+                  {zkpMode ? "Privacy Mode ON" : "Privacy Mode OFF"}
+                </span>
+              </label>
+            </div>
+          </div>
+        )}
       </div>
 
       {loading ? (

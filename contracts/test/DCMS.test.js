@@ -208,4 +208,181 @@ describe("DCMS", function () {
       expect(p.executed).to.equal(true);
     });
   });
+
+  describe("ZKP Identity Registration", function () {
+    it("user can register identity commitment", async function () {
+      const { dcms, user1 } = await deploy();
+      const commitment = ethers.keccak256(ethers.toBeHex(12345));
+      await expect(dcms.connect(user1).registerIdentity(commitment))
+        .to.emit(dcms, "IdentityRegistered");
+      expect(await dcms.identityCommitments(commitment)).to.equal(true);
+    });
+
+    it("cannot register same commitment twice", async function () {
+      const { dcms, user1 } = await deploy();
+      const commitment = ethers.keccak256(ethers.toBeHex(12345));
+      await dcms.connect(user1).registerIdentity(commitment);
+      await expect(dcms.connect(user1).registerIdentity(commitment))
+        .to.be.revertedWith("DCMS: identity already registered");
+    });
+
+    it("tracks identity count", async function () {
+      const { dcms, user1, user2 } = await deploy();
+      await dcms.connect(user1).registerIdentity(ethers.keccak256(ethers.toBeHex(1)));
+      await dcms.connect(user2).registerIdentity(ethers.keccak256(ethers.toBeHex(2)));
+      expect(await dcms.identityCount()).to.equal(2n);
+    });
+  });
+
+  describe("ZKP Voting", function () {
+    it("can create proposal and vote with ZKP (mock)", async function () {
+      const { dcms, user1 } = await deploy();
+      await dcms.createProposal("ZKP Test Proposal", 3600);
+
+      const nullifier = ethers.keccak256(ethers.toBeHex(999));
+      await expect(dcms.connect(user1).voteZKP(1, true, nullifier, [0,0,0,0,0,0,0,0]))
+        .to.emit(dcms, "ZKPVoted");
+
+      expect(await dcms.nullifiers(nullifier)).to.equal(true);
+    });
+
+    it("prevents double voting with same nullifier", async function () {
+      const { dcms, user1 } = await deploy();
+      await dcms.createProposal("ZKP Test", 3600);
+
+      const nullifier = ethers.keccak256(ethers.toBeHex(888));
+      await dcms.connect(user1).voteZKP(1, true, nullifier, [0,0,0,0,0,0,0,0]);
+
+      await expect(dcms.connect(user1).voteZKP(1, false, nullifier, [0,0,0,0,0,0,0,0]))
+        .to.be.revertedWith("DCMS: already voted");
+    });
+
+    it("rejects vote on non-existent proposal", async function () {
+      const { dcms, user1 } = await deploy();
+      const nullifier = ethers.keccak256(ethers.toBeHex(777));
+      await expect(dcms.connect(user1).voteZKP(99, true, nullifier, [0,0,0,0,0,0,0,0]))
+        .to.be.revertedWith("DCMS: no such proposal");
+    });
+
+    it("cannot vote via both vote() and voteZKP() (BUG FIX)", async function () {
+      const { dcms, user1 } = await deploy();
+      await dcms.createProposal("Test Proposal", 3600);
+
+      // First register identity - this migrates user to ZKP mode
+      await dcms.connect(user1).registerIdentity(ethers.keccak256(ethers.toBeHex(111)));
+      expect(await dcms.zkpMigrated(user1.address)).to.equal(true);
+
+      // Try to vote via plaintext - should fail (user is ZKP-migrated)
+      await expect(dcms.connect(user1).vote(1, true))
+        .to.be.revertedWith("DCMS: must use voteZKP");
+    });
+
+    it("cannot vote via both voteZKP() and vote() (BUG FIX)", async function () {
+      const { dcms, user1 } = await deploy();
+      await dcms.createProposal("Test Proposal", 3600);
+
+      // Register identity - migrates to ZKP
+      await dcms.connect(user1).registerIdentity(ethers.keccak256(ethers.toBeHex(222)));
+
+      // Vote via ZKP should work
+      const nullifier = ethers.keccak256(ethers.toBeHex(888));
+      await dcms.connect(user1).voteZKP(1, true, nullifier, [0,0,0,0,0,0,0,0]);
+
+      // Try to vote via plaintext - should fail (still ZKP-migrated)
+      await expect(dcms.connect(user1).vote(1, false))
+        .to.be.revertedWith("DCMS: must use voteZKP");
+    });
+  });
+
+  describe("ZKP Private Bookings", function () {
+    it("can make private booking with ZKP commitment", async function () {
+      const { dcms, user1 } = await deploy();
+      await dcms.addResource("Private Cabin", "secluded", ethers.parseEther("0.01"));
+
+      const commitment = ethers.keccak256(ethers.toBeHex(111));
+      const nullifier = ethers.keccak256(ethers.toBeHex(222));
+
+      await expect(dcms.connect(user1).bookResourceZKP(
+        commitment, nullifier, 1, [0,0,0,0,0,0,0,0], { value: ethers.parseEther("0.01") }
+      )).to.emit(dcms, "ZKPBookingCreated");
+
+      expect(await dcms.bookingCommitments(commitment)).to.equal(true);
+      expect(await dcms.bookingNullifiers(nullifier)).to.equal(true);
+    });
+
+    it("prevents double booking with same nullifier", async function () {
+      const { dcms, user1 } = await deploy();
+      await dcms.addResource("Cabin", "test", ethers.parseEther("0.01"));
+
+      const commitment1 = ethers.keccak256(ethers.toBeHex(111));
+      const nullifier = ethers.keccak256(ethers.toBeHex(333));
+
+      await dcms.connect(user1).bookResourceZKP(
+        commitment1, nullifier, 1, [0,0,0,0,0,0,0,0], { value: ethers.parseEther("0.01") }
+      );
+
+      const commitment2 = ethers.keccak256(ethers.toBeHex(112));
+      await expect(dcms.connect(user1).bookResourceZKP(
+        commitment2, nullifier, 1, [0,0,0,0,0,0,0,0], { value: ethers.parseEther("0.01") }
+      )).to.be.revertedWith("DCMS: nullifier already used");
+    });
+
+    it("ZKP booking creates private booking without revealing times (ARCHITECTURE FIX)", async function () {
+      const { dcms, user1 } = await deploy();
+      await dcms.addResource("Cabin", "test", ethers.parseEther("0.01"));
+
+      const commitment = ethers.keccak256(ethers.toBeHex(999));
+      const nullifier = ethers.keccak256(ethers.toBeHex(888));
+
+      await dcms.connect(user1).bookResourceZKP(
+        commitment, nullifier, 1, [0,0,0,0,0,0,0,0], { value: ethers.parseEther("0.01") }
+      );
+
+      // Booking created with address(0) - no user identity revealed
+      const b = await dcms.getBooking(1);
+      expect(b.user).to.equal(ethers.ZeroAddress);
+
+      // Times are 0 - not stored on-chain (verified inside ZK proof in production)
+      expect(b.startTime).to.equal(0n);
+      expect(b.endTime).to.equal(0n);
+    });
+
+    it("ZKP booking does NOT mint NFT to msg.sender (PRIVACY FIX)", async function () {
+      const { dcms, user1 } = await deploy();
+      await dcms.addResource("Cabin", "test", ethers.parseEther("0.01"));
+
+      const commitment = ethers.keccak256(ethers.toBeHex(111));
+      const nullifier = ethers.keccak256(ethers.toBeHex(222));
+
+      await dcms.connect(user1).bookResourceZKP(
+        commitment, nullifier, 1, [0,0,0,0,0,0,0,0], { value: ethers.parseEther("0.01") }
+      );
+
+      // User should NOT have any NFTs - no Transfer event emitted
+      expect(await dcms.balanceOf(user1.address)).to.equal(0n);
+    });
+  });
+
+  describe("ZKP Verifier Management", function () {
+    it("admin can set verifier addresses", async function () {
+      const { dcms, admin } = await deploy();
+      const verifier1 = "0x1234567890123456789012345678901234567890";
+      const verifier2 = "0x2345678901234567890123456789012345678901";
+      const verifier3 = "0x3456789012345678901234567890123456789012";
+
+      await dcms.setVerifiers(verifier1, verifier2, verifier3);
+
+      expect(await dcms.votingVerifier()).to.equal(verifier1);
+      expect(await dcms.bookingVerifier()).to.equal(verifier2);
+      expect(await dcms.reputationVerifier()).to.equal(verifier3);
+    });
+
+    it("non-admin cannot set verifiers", async function () {
+      const { dcms, user1 } = await deploy();
+      const verifier = "0x1234567890123456789012345678901234567890";
+
+      await expect(dcms.connect(user1).setVerifiers(verifier, verifier, verifier))
+        .to.be.revertedWith("DCMS: only admin");
+    });
+  });
 });
