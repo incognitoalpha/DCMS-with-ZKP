@@ -8,13 +8,36 @@ This version focuses on validating bookings, votes, and reputation claims with Z
 
 ZKP here is used as a "proof of validity" layer. For example, a booking transaction includes a Groth16 proof that is checked by the contract before it accepts the booking.
 
-Important: ZKP does not hide the transaction sender on Ethereum. Every transaction still has a `from` address on-chain, and logs/indexers can still observe that sender. Some events in this project also include addresses. This is not full anonymity.
+Important: ZKP does not hide the transaction sender on Ethereum. Every transaction still has a `from` address on-chain, and logs/indexers can still observe that sender. This project also stores some booking metadata (time range, amount paid) on-chain for conflict detection and refunds. This is not full anonymity.
+
+## Where ZKP Is Used
+
+**On-chain (Solidity):**
+
+- `DCMS.bookResource(...)` verifies `BookingVerifier.verifyProof(...)` before creating a booking.
+- `DCMS.cancelBooking(...)` verifies the same booking proof before cancelling + refunding.
+- `DCMS.vote(...)` verifies `VotingVerifier.verifyProof(...)` before counting a vote (prevents double-voting via nullifiers).
+- `DCMS.claimReputation(...)` verifies `ReputationVerifier.verifyProof(...)` before accepting a claim.
+
+**In the frontend (Next.js):**
+
+- Proof generation helpers: `frontend/src/lib/zkp.ts` (snarkjs Groth16 + Poseidon via circomlibjs).
+- Booking proof generation + pre-check against the deployed verifier: `frontend/src/app/resources/page.tsx`.
+- Identity registration + voting proof generation: `frontend/src/app/governance/page.tsx`.
+- Cancellation proof generation + reputation claim proof generation: `frontend/src/app/bookings/page.tsx`.
+
+**Keys / artifacts used by the browser:**
+
+- `frontend/public/zk/*.wasm`, `*_final.zkey`, `*_vkey.json`.
+
+Note: for the demo UX, booking secrets (needed for cancel/reputation) are stored in `localStorage` under `dcms_bookings`. If you clear site data or switch browsers/devices, you may not be able to cancel/claim for older bookings.
 
 ## Features
 
 - Admin resource management (`addResource`, `setResourceActive`)
 - ZK booking: commitment + nullifier + time range validated by a Groth16 proof, with on-chain double-booking checks
-- ZK voting (demo identity set + nullifiers)
+- ZK cancellation: cancel + refund requires a valid booking proof
+- ZK voting (demo identity registry + nullifiers)
 - ZK reputation claim (threshold proof)
 - Activity feed built from contract events
 
@@ -73,6 +96,12 @@ In one terminal, from `contracts/`:
 npx hardhat node
 ```
 
+If `npx` is blocked by your PowerShell execution policy on Windows, use:
+
+```bash
+.\node_modules\.bin\hardhat.cmd node
+```
+
 This prints 20 funded accounts. Account #0 is the deployer/admin.
 
 ### 3. Deploy the Contract + Verifiers + Seed Resources
@@ -81,6 +110,12 @@ In a second terminal, from `contracts/`:
 
 ```bash
 npx hardhat run scripts/deploy.js --network localhost
+```
+
+Windows fallback (when `npx` is blocked):
+
+```bash
+.\node_modules\.bin\hardhat.cmd run scripts\deploy.js --network localhost
 ```
 
 This deploys the verifiers and the DCMS contract, seeds sample resources, and writes:
@@ -122,6 +157,22 @@ From `contracts/`:
 ```bash
 npx hardhat test
 ```
+
+Windows fallback (when `npx` is blocked):
+
+```bash
+.\node_modules\.bin\hardhat.cmd test
+```
+
+## Rebuilding ZK Circuits (Optional)
+
+The repo already contains generated verifiers and proving keys. If you modify any Circom circuit under `contracts/circuits/`, rebuild and recopy artifacts by running this from `contracts/`:
+
+```bash
+node .\scripts\build-circuits.js
+```
+
+This regenerates `contracts/contracts/*Verifier.sol` and refreshes `frontend/public/zk/*`.
 
 ## What Is On-Chain vs Off-Chain
 
