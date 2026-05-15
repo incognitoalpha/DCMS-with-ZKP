@@ -1,5 +1,7 @@
 pragma circom 2.0.0;
 
+include "../node_modules/circomlib/circuits/poseidon.circom";
+
 template VotingCircuit() {
     signal input proposalId;
     signal input nullifierHash;
@@ -26,16 +28,14 @@ template VotingCircuit() {
     signal hash[17];
     hash[0] <== identityCommit.out;
 
+    component hashers[16];
     for (var i = 0; i < 16; i++) {
-        component hasher = Poseidon(2);
-        if (treePathIndices[i] == 0) {
-            hasher.inputs[0] <== hash[i];
-            hasher.inputs[1] <== treePathElements[i];
-        } else {
-            hasher.inputs[0] <== treePathElements[i];
-            hasher.inputs[1] <== hash[i];
-        }
-        hash[i+1] <== hasher.out;
+        hashers[i] = Poseidon(2);
+        
+        hashers[i].inputs[0] <== hash[i] - treePathIndices[i] * (hash[i] - treePathElements[i]);
+        hashers[i].inputs[1] <== treePathElements[i] + treePathIndices[i] * (hash[i] - treePathElements[i]);
+        
+        hash[i+1] <== hashers[i].out;
     }
 
     hash[16] === scope;

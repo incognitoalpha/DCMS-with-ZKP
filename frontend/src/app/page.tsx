@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useWallet, shortAddr } from "@/lib/wallet";
 
 export default function HomePage() {
-  const { address, connect, connecting, isAdmin, contractAddress, expectedChainId, chainId } =
+  const { address, adminAddress, connect, connecting, isAdmin, contractAddress, expectedChainId, chainId } =
     useWallet();
   const wrongChain = address !== null && chainId !== null && chainId !== expectedChainId;
 
@@ -62,6 +62,9 @@ export default function HomePage() {
                 </div>
                 <div className="pt-2 text-xs text-forest-700/60 break-all">
                   Contract: {contractAddress}
+                </div>
+                <div className="text-xs text-forest-700/60 break-all">
+                  Admin: {adminAddress ?? "loading..."}
                 </div>
               </div>
             ) : (

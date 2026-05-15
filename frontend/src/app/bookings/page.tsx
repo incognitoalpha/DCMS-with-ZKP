@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useWallet } from "@/lib/wallet";
 import { fmtEth, fmtTime, parseRevert } from "@/lib/format";
 import { toast } from "@/components/Toast";
-import { hasStoredIdentity, generateRandomSecret, generateBookingCommitment, generateBookingNullifier, getZKPIdentity } from "@/lib/zkp";
+import { hasStoredIdentity, generateReputationProof, formatProofForContract, generateReputationCommitment } from "@/lib/zkp";
 
 type Booking = {
   id: bigint;
@@ -32,105 +32,104 @@ export default function BookingsPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [reputation, setReputation] = useState<bigint>(0n);
   const [claimedMap, setClaimedMap] = useState<Record<string, boolean>>({});
-  const [tokenUris, setTokenUris] = useState<Record<string, string>>({});
-  const [showReceipt, setShowReceipt] = useState<{ id: string; uri: string } | null>(null);
-  const [zkpMode, setZkpMode] = useState(false);
   const [hasZKP, setHasZKP] = useState(false);
+  const [mySecrets, setMySecrets] = useState<Record<string, string>>({});
 
-  // Check ZKP identity on load
   useEffect(() => {
     setHasZKP(hasStoredIdentity());
-  }, []);
-
-  // Check if ZKP contract functions are available
-  const supportsZKP = useCallback(async () => {
-    if (!contract) return false;
-    try {
-      await contract.bookResourceZKP(
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-        1, 0, 0,
-        [0,0,0,0,0,0,0,0]
-      );
-      return false;
-    } catch (e: any) {
-      // If it's not a function error, ZKP might be available
-      return !e.message?.includes('not a function');
+    if (typeof window !== "undefined") {
+      setMySecrets(JSON.parse(localStorage.getItem("dcms_bookings") || "{}"));
     }
-  }, [contract]);
+  }, []);
 
   const load = useCallback(async () => {
     if (!contract || !address) return;
     setLoading(true);
     try {
-      const [bs, rs, rep]: [Booking[], Resource[], bigint] = await Promise.all([
-        contract.getMyBookings(),
-        contract.getAllResources(),
-        contract.reputation(address),
-      ]);
+      const rs: Resource[] = await contract.getAllResources();
       const map = new Map<string, Resource>();
       for (const r of rs) map.set(String(r.id), r);
       setResources(map);
-      setReputation(rep);
-      const sorted = [...bs].sort((a, b) => Number(b.id) - Number(a.id));
-      setBookings(sorted);
-
-      // claimed flags + token URIs (for non-cancelled)
+      
+      // In a real ZKP app, we would query the indexer or events for our commitments.
+      // For this demo, we'll scan events for BookingCreated.
+      const filter = contract.filters.BookingCreated();
+      const events = await contract.queryFilter(filter, 0, 'latest');
+      
+      const bs: Booking[] = [];
       const claimed: Record<string, boolean> = {};
-      const uris: Record<string, string> = {};
-      await Promise.all(
-        sorted.map(async (b) => {
-          try {
-            claimed[String(b.id)] = await contract.reputationClaimed(b.id);
-          } catch {
-            claimed[String(b.id)] = false;
-          }
-          if (!b.cancelled) {
-            try {
-              uris[String(b.id)] = await contract.tokenURI(b.id);
-            } catch {
-              /* burned or missing */
-            }
-          }
-        })
-      );
+
+      let rep = 0n;
+
+      for (const e of events) {
+        const event = e as any;
+        const commitment = event.args[0].toString();
+        const nullifier = event.args[1];
+        const resourceId = event.args[2];
+        
+        // If we have the secret for this commitment in local storage, it's ours!
+        if (mySecrets[commitment]) {
+           const secretStr = mySecrets[commitment];
+           const repCommitment = await generateReputationCommitment(BigInt(secretStr), 1n);
+           // We don't have startTime/endTime since they are private, so we mock them for UI.
+           // In production, user stores startTime/endTime locally alongside the secret.
+           bs.push({
+             id: BigInt(commitment), // Using commitment as ID for UI purposes
+             resourceId,
+             user: address,
+             startTime: 0n, // Private
+             endTime: 0n, // Private
+             amountPaid: 0n,
+             cancelled: false
+           });
+           
+           try {
+             claimed[commitment] = await contract.reputationCommitments(repCommitment);
+             if (claimed[commitment]) rep++;
+           } catch {
+             claimed[commitment] = false;
+           }
+        }
+      }
+
+      setReputation(rep);
+      const sorted = [...bs].reverse();
+      setBookings(sorted);
       setClaimedMap(claimed);
-      setTokenUris(uris);
+
     } catch (err) {
       toast(parseRevert(err), "error");
     } finally {
       setLoading(false);
     }
-  }, [contract, address]);
+  }, [contract, address, mySecrets]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  async function claim(id: bigint) {
+  async function claim(commitment: bigint) {
     if (!contract) return;
-    setBusyId(String(id));
+    setBusyId(String(commitment));
     try {
-      const tx = await contract.claimReputation(id);
-      toast("Claiming reputation…");
+      const secretStr = mySecrets[commitment.toString()];
+      if (!secretStr) {
+        toast("No secret found for this booking", "error");
+        return;
+      }
+      
+      toast("Generating ZKP for Reputation Claim...");
+      
+      const secret = BigInt(secretStr);
+      // For demo, we are proving score=1, threshold=1.
+      const proof = await generateReputationProof(secret, 1n, 1n);
+      const repCommitment = proof.publicSignals[1];
+      const [a, b, c] = formatProofForContract(proof);
+      
+      const tx = await contract.claimReputation(1n, repCommitment, a, b, c);
+      toast("Claim submitted...");
       await tx.wait();
       toast("Reputation +1 ✓", "success");
-      load();
-    } catch (err) {
-      toast(parseRevert(err), "error");
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  async function cancel(id: bigint) {
-    if (!contract) return;
-    setBusyId(String(id));
-    try {
-      const tx = await contract.cancelBooking(id);
-      toast("Cancellation submitted…");
-      await tx.wait();
-      toast("Refund received ✓", "success");
       load();
     } catch (err) {
       toast(parseRevert(err), "error");
@@ -154,9 +153,9 @@ export default function BookingsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl text-forest-800">My bookings</h1>
+          <h1 className="font-display text-3xl text-forest-800">My private bookings</h1>
           <p className="text-forest-700/70">
-            Each booking mints a soulbound NFT receipt to your wallet.
+            Fully anonymous via ZK-SNARKs. Times and payment are hidden.
           </p>
         </div>
         <div className="card flex items-center gap-3 py-3">
@@ -171,34 +170,23 @@ export default function BookingsPage() {
           </div>
         </div>
 
-        {/* ZKP Privacy Mode Toggle */}
-        {hasZKP && (
-          <div className="card flex items-center gap-3 py-3 border-forest-300">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-bark text-cream-50 font-display text-lg">
-              🛡
-            </div>
-            <div>
-              <div className="text-xs uppercase tracking-wide text-forest-700/60">
-                Privacy Shield
-              </div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={zkpMode}
-                  onChange={(e) => setZkpMode(e.target.checked)}
-                  className="sr-only"
-                />
-                <span className={`font-display text-lg ${zkpMode ? "text-forest-800" : "text-forest-400"}`}>
-                  {zkpMode ? "Privacy Mode ON" : "Privacy Mode OFF"}
-                </span>
-              </label>
-            </div>
+        <div className="card flex items-center gap-3 py-3 border-forest-300">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-bark text-cream-50 font-display text-lg">
+            🛡
           </div>
-        )}
+          <div>
+            <div className="text-xs uppercase tracking-wide text-forest-700/60">
+              Privacy Shield
+            </div>
+            <span className="font-display text-lg text-forest-800">
+              Privacy Mode ON
+            </span>
+          </div>
+        </div>
       </div>
 
       {loading ? (
-        <div className="card">Loading your bookings…</div>
+        <div className="card">Loading your private bookings…</div>
       ) : bookings.length === 0 ? (
         <div className="card text-forest-700/80">
           You have no bookings yet. Head to the resources page to make your first booking.
@@ -207,68 +195,34 @@ export default function BookingsPage() {
         <div className="grid gap-3">
           {bookings.map((b) => {
             const r = resources.get(String(b.resourceId));
-            const now = Math.floor(Date.now() / 1000);
-            const isPast = Number(b.endTime) < now;
-            const isUpcoming = Number(b.startTime) > now;
+            const commitmentStr = b.id.toString();
             return (
-              <div key={String(b.id)} className="card flex flex-wrap items-center gap-4">
+              <div key={commitmentStr} className="card flex flex-wrap items-center gap-4">
                 <div className="flex-1 min-w-[220px]">
                   <div className="flex items-center gap-2">
                     <span className="font-display text-lg text-forest-800">
                       {r?.name ?? `Resource #${String(b.resourceId)}`}
                     </span>
-                    <span
-                      className={
-                        b.cancelled
-                          ? "chip border-red-200 bg-red-50 text-red-700"
-                          : isPast
-                          ? "chip"
-                          : isUpcoming
-                          ? "chip bg-forest-100 text-forest-700"
-                          : "chip bg-wood-400/20 text-wood-700"
-                      }
-                    >
-                      {b.cancelled ? "cancelled" : isPast ? "past" : isUpcoming ? "upcoming" : "active now"}
+                    <span className="chip border-forest-200 bg-forest-50 text-forest-700">
+                      Private Booking
                     </span>
                   </div>
-                  <div className="text-sm text-forest-700/80 mt-1">
-                    {fmtTime(b.startTime)} → {fmtTime(b.endTime)}
+                  <div className="text-xs text-forest-700/60 mt-1 font-mono break-all">
+                    Commitment: {commitmentStr.slice(0, 10)}...{commitmentStr.slice(-8)}
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs uppercase tracking-wide text-forest-700/60">Paid</div>
-                  <div className="font-display text-lg text-forest-800">
-                    {fmtEth(b.amountPaid)}
-                  </div>
-                </div>
+                
                 <div className="flex flex-wrap gap-2">
-                  {!b.cancelled && tokenUris[String(b.id)] && (
-                    <button
-                      onClick={() =>
-                        setShowReceipt({ id: String(b.id), uri: tokenUris[String(b.id)] })
-                      }
-                      className="btn-ghost"
-                    >
-                      View NFT
-                    </button>
-                  )}
-                  {!b.cancelled && isPast && !claimedMap[String(b.id)] && (
+                  {!claimedMap[commitmentStr] ? (
                     <button
                       onClick={() => claim(b.id)}
-                      disabled={busyId === String(b.id)}
+                      disabled={busyId === commitmentStr}
                       className="btn-primary"
                     >
-                      {busyId === String(b.id) ? "Claiming…" : "Claim +1 reputation"}
+                      {busyId === commitmentStr ? "Claiming…" : "Claim Reputation via ZKP"}
                     </button>
-                  )}
-                  {!b.cancelled && isUpcoming && (
-                    <button
-                      onClick={() => cancel(b.id)}
-                      disabled={busyId === String(b.id)}
-                      className="btn-secondary"
-                    >
-                      {busyId === String(b.id) ? "Cancelling…" : "Cancel & refund"}
-                    </button>
+                  ) : (
+                    <span className="chip">Reputation claimed ✓</span>
                   )}
                 </div>
               </div>
@@ -276,63 +230,6 @@ export default function BookingsPage() {
           })}
         </div>
       )}
-
-      {showReceipt && (
-        <ReceiptModal
-          id={showReceipt.id}
-          uri={showReceipt.uri}
-          onClose={() => setShowReceipt(null)}
-        />
-      )}
-    </div>
-  );
-}
-
-function ReceiptModal({
-  id,
-  uri,
-  onClose,
-}: {
-  id: string;
-  uri: string;
-  onClose: () => void;
-}) {
-  let imgSrc = "";
-  let meta: { name?: string; description?: string } = {};
-  try {
-    const b64 = uri.replace("data:application/json;base64,", "");
-    const json = JSON.parse(atob(b64));
-    imgSrc = json.image as string;
-    meta = json;
-  } catch {
-    /* ignore */
-  }
-
-  return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-bark/40 backdrop-blur-sm p-4">
-      <div className="card w-full max-w-md space-y-3">
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="text-xs uppercase tracking-wide text-forest-700/60">
-              NFT Receipt #{id}
-            </div>
-            <h2 className="font-display text-xl text-forest-800">{meta.name ?? "Booking"}</h2>
-          </div>
-          <button onClick={onClose} className="btn-ghost px-3 py-1">
-            ✕
-          </button>
-        </div>
-        {imgSrc ? (
-          <div className="rounded-2xl overflow-hidden border border-cream-200">
-            <img src={imgSrc} alt="Booking NFT" className="w-full" />
-          </div>
-        ) : (
-          <div className="card text-forest-700/70">Could not render image.</div>
-        )}
-        <p className="text-xs text-forest-700/70">
-          Soulbound (ERC-5192). Cannot be transferred. Burn happens automatically on cancel.
-        </p>
-      </div>
     </div>
   );
 }

@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { Contract } from "ethers";
 import { useWallet } from "@/lib/wallet";
 import { fmtEth, fmtTime, toLocalInput, fromLocalInput, parseRevert } from "@/lib/format";
 import { toast } from "@/components/Toast";
+import { generateRandomSecret, generateBookingProof, formatProofForContract } from "@/lib/zkp";
 
 type Resource = {
   id: bigint;
@@ -23,13 +25,26 @@ type Booking = {
   cancelled: boolean;
 };
 
+const BOOKING_VERIFIER_ABI = [
+  {
+    type: "function",
+    stateMutability: "view",
+    name: "verifyProof",
+    inputs: [
+      { name: "_pA", type: "uint256[2]" },
+      { name: "_pB", type: "uint256[2][2]" },
+      { name: "_pC", type: "uint256[2]" },
+      { name: "_pubSignals", type: "uint256[5]" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+  },
+] as const;
+
 export default function ResourcesPage() {
   const { contract, address, connect } = useWallet();
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Resource | null>(null);
-
-  const [surges, setSurges] = useState<Record<string, bigint>>({});
 
   const load = useCallback(async () => {
     if (!contract) return;
@@ -37,17 +52,6 @@ export default function ResourcesPage() {
     try {
       const list: Resource[] = await contract.getAllResources();
       setResources(list);
-      const entries = await Promise.all(
-        list.map(async (r) => {
-          try {
-            const s: bigint = await contract.surgeMultiplierBps(r.id);
-            return [String(r.id), s] as const;
-          } catch {
-            return [String(r.id), 10000n] as const;
-          }
-        })
-      );
-      setSurges(Object.fromEntries(entries));
     } catch (err) {
       toast(parseRevert(err), "error");
     } finally {
@@ -76,7 +80,7 @@ export default function ResourcesPage() {
       <div className="flex items-end justify-between">
         <div>
           <h1 className="font-display text-3xl text-forest-800">Available resources</h1>
-          <p className="text-forest-700/70">Pick a resource and book a time slot.</p>
+          <p className="text-forest-700/70">Pick a resource and book a time slot securely.</p>
         </div>
       </div>
 
@@ -93,7 +97,6 @@ export default function ResourcesPage() {
             <ResourceCard
               key={String(r.id)}
               r={r}
-              surgeBps={surges[String(r.id)] ?? 10000n}
               onBook={() => setSelected(r)}
             />
           ))}
@@ -116,17 +119,11 @@ export default function ResourcesPage() {
 
 function ResourceCard({
   r,
-  surgeBps,
   onBook,
 }: {
   r: Resource;
-  surgeBps: bigint;
   onBook: () => void;
 }) {
-  const multiplier = Number(surgeBps) / 10000;
-  const effective = (r.pricePerHour * surgeBps) / 10000n;
-  const isSurging = surgeBps > 10000n;
-
   return (
     <div className="card flex flex-col">
       <div className="flex items-start justify-between">
@@ -139,25 +136,16 @@ function ResourceCard({
         </span>
       </div>
       <p className="mt-3 text-sm text-forest-700/80 flex-1">{r.description}</p>
-      {isSurging && (
-        <div className="mt-3 rounded-lg bg-wood-400/15 border border-wood-400/30 px-3 py-1.5 text-xs text-wood-700">
-          Surge active · {multiplier.toFixed(2)}× — high demand in next 7 days
-        </div>
-      )}
+      
       <div className="mt-4 flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wide text-forest-700/60">Per hour</div>
           <div className="font-display text-lg text-forest-800">
-            {fmtEth(effective)}
-            {isSurging && (
-              <span className="ml-2 text-xs text-forest-700/60 line-through">
-                {fmtEth(r.pricePerHour)}
-              </span>
-            )}
+            {fmtEth(r.pricePerHour)}
           </div>
         </div>
         <button disabled={!r.active} onClick={onBook} className="btn-primary">
-          Book
+          Book Private
         </button>
       </div>
     </div>
@@ -178,49 +166,13 @@ function BookModal({
   const [start, setStart] = useState(toLocalInput(now + 3600));
   const [end, setEnd] = useState(toLocalInput(now + 3600 * 2));
   const [busy, setBusy] = useState(false);
-  const [existing, setExisting] = useState<Booking[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (!contract) return;
-      try {
-        const list: Booking[] = await contract.getBookingsForResource(resource.id);
-        if (!cancelled) setExisting(list);
-      } catch {
-        /* silent */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [contract, resource.id]);
 
   const startTs = fromLocalInput(start);
   const endTs = fromLocalInput(end);
   const validRange = endTs > startTs;
   const hours = validRange ? Math.ceil((endTs - startTs) / 3600) : 0;
-  const [quotedCost, setQuotedCost] = useState<bigint>(0n);
-  const [quotedSurge, setQuotedSurge] = useState<bigint>(10000n);
-  useEffect(() => {
-    let cancelled = false;
-    if (!contract || !validRange) return;
-    (async () => {
-      try {
-        const [c, s] = await contract.quote(resource.id, startTs, endTs);
-        if (!cancelled) {
-          setQuotedCost(c as bigint);
-          setQuotedSurge(s as bigint);
-        }
-      } catch {
-        /* silent */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [contract, resource.id, startTs, endTs, validRange]);
-  const cost = quotedCost;
+  
+  const cost = resource.pricePerHour * BigInt(hours);
 
   async function submit() {
     if (!contract) return;
@@ -230,9 +182,73 @@ function BookModal({
     }
     setBusy(true);
     try {
-      const tx = await contract.bookResource(resource.id, startTs, endTs, { value: cost });
+      toast("Generating ZK Proof for private booking...");
+      const secret = generateRandomSecret();
+      const nonce = BigInt(Math.floor(Math.random() * 1000000));
+      const proof = await generateBookingProof(secret, resource.id, BigInt(startTs), BigInt(endTs), nonce);
+      const [a, b, c] = formatProofForContract(proof);
+      const commitment = proof.publicSignals[0];
+      const nullifier = proof.publicSignals[1];
+      const publicInputs = [commitment, nullifier, resource.id, BigInt(startTs), BigInt(endTs)] as const;
+
+      const verifierAddress = await contract.bookingVerifier();
+      const verifier = new Contract(verifierAddress, BOOKING_VERIFIER_ABI, contract.runner);
+      const proofValid = await verifier.verifyProof(a, b, c, publicInputs);
+      if (!proofValid) {
+        throw new Error("Generated booking proof does not match the deployed verifier");
+      }
+
+      await contract.bookResource.staticCall(
+        commitment,
+        nullifier,
+        resource.id,
+        startTs,
+        endTs,
+        a,
+        b,
+        c,
+        { value: cost }
+      );
+
+      let gasLimit: bigint | undefined;
+      try {
+        const estimatedGas = await contract.bookResource.estimateGas(
+          commitment,
+          nullifier,
+          resource.id,
+          startTs,
+          endTs,
+          a,
+          b,
+          c,
+          { value: cost }
+        );
+        gasLimit = (estimatedGas * 12n) / 10n;
+      } catch {
+        gasLimit = 1_500_000n;
+      }
+
+      const tx = await contract.bookResource(
+        commitment,
+        nullifier,
+        resource.id,
+        startTs,
+        endTs,
+        a,
+        b,
+        c,
+        { value: cost, gasLimit }
+      );
       toast("Booking submitted, waiting for confirmation…");
       await tx.wait();
+      
+      // Save secret for claiming reputation later
+      if (typeof window !== "undefined") {
+         const existing = JSON.parse(localStorage.getItem("dcms_bookings") || "{}");
+         existing[commitment.toString()] = secret.toString();
+         localStorage.setItem("dcms_bookings", JSON.stringify(existing));
+      }
+
       toast("Booking confirmed on-chain ✓", "success");
       onBooked();
     } catch (err) {
@@ -248,7 +264,7 @@ function BookModal({
         <div className="flex items-start justify-between">
           <div>
             <div className="text-xs uppercase tracking-wide text-forest-700/60">
-              Booking
+              Private Booking
             </div>
             <h2 className="font-display text-2xl text-forest-800">{resource.name}</h2>
           </div>
@@ -283,17 +299,6 @@ function BookModal({
             <span>Duration</span>
             <span className="font-mono">{hours} hour(s)</span>
           </div>
-          <div className="flex justify-between">
-            <span>Surge multiplier</span>
-            <span className="font-mono">
-              {(Number(quotedSurge) / 10000).toFixed(2)}×
-              {quotedSurge > 10000n && (
-                <span className="ml-2 chip bg-wood-400/15 text-wood-700 border-wood-400/30 py-0">
-                  surge
-                </span>
-              )}
-            </span>
-          </div>
           <div className="flex justify-between font-medium">
             <span>Total cost</span>
             <span className="font-mono">
@@ -302,29 +307,12 @@ function BookModal({
           </div>
         </div>
 
-        {existing.length > 0 && (
-          <div className="rounded-xl border border-cream-200 p-3">
-            <div className="label mb-2">Existing bookings on this resource</div>
-            <ul className="space-y-1 max-h-32 overflow-auto text-xs text-forest-700/80">
-              {existing
-                .filter((b) => !b.cancelled)
-                .map((b) => (
-                  <li key={String(b.id)} className="flex justify-between">
-                    <span>{fmtTime(b.startTime)}</span>
-                    <span>→ {fmtTime(b.endTime)}</span>
-                  </li>
-                ))}
-              {existing.filter((b) => !b.cancelled).length === 0 && <li>No bookings yet.</li>}
-            </ul>
-          </div>
-        )}
-
         <div className="flex justify-end gap-2 pt-1">
           <button onClick={onClose} className="btn-ghost">
             Cancel
           </button>
           <button onClick={submit} disabled={busy || !validRange} className="btn-primary">
-            {busy ? "Confirming…" : "Confirm booking"}
+            {busy ? "Generating ZKP…" : "Confirm booking"}
           </button>
         </div>
       </div>

@@ -9,19 +9,22 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "circomlibjs": "^0.1.7",
+    "ethers": "6.13.4",
     "next": "14.2.15",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "ethers": "6.13.4",
     "snarkjs": "^0.7.5"
   },
   "devDependencies": {
-    "typescript": "5.6.3",
+    "@types/circomlibjs": "^0.1.6",
+    "@types/node": "22.7.5",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
-    "@types/node": "22.7.5",
-    "tailwindcss": "3.4.14",
+    "@types/snarkjs": "^0.7.9",
+    "autoprefixer": "10.4.20",
     "postcss": "8.4.47",
-    "autoprefixer": "10.4.20"
+    "tailwindcss": "3.4.14",
+    "typescript": "5.6.3"
   }
 }

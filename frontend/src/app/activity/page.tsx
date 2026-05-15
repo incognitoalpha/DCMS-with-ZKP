@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useWallet, shortAddr } from "@/lib/wallet";
-import { fmtEth, fmtTime } from "@/lib/format";
+import { fmtTime } from "@/lib/format";
 
 type FeedItem = {
   key: string;
   ts: number;
-  kind: "booking" | "cancel" | "proposal" | "vote" | "executed" | "resource" | "reputation";
+  kind: "booking" | "cancel" | "proposal" | "vote" | "executed" | "resource" | "reputation" | "identity";
   title: string;
   detail: string;
   txHash?: string;
@@ -27,27 +27,28 @@ export default function ActivityPage() {
       const latest = await provider.getBlockNumber();
       const fromBlock = Math.max(0, latest - 5000);
       try {
-        const [created, cancelled_, props, votes, executed, added, rep] = await Promise.all([
+        const [created, cancelled_, props, votes, executed, added, rep, idents] = await Promise.all([
           contract.queryFilter(contract.filters.BookingCreated(), fromBlock),
           contract.queryFilter(contract.filters.BookingCancelled(), fromBlock),
           contract.queryFilter(contract.filters.ProposalCreated(), fromBlock),
           contract.queryFilter(contract.filters.Voted(), fromBlock),
           contract.queryFilter(contract.filters.ProposalExecuted(), fromBlock),
           contract.queryFilter(contract.filters.ResourceAdded(), fromBlock),
-          contract.queryFilter(contract.filters.ReputationEarned(), fromBlock),
+          contract.queryFilter(contract.filters.ReputationClaimed(), fromBlock),
+          contract.queryFilter(contract.filters.IdentityRegistered(), fromBlock),
         ]);
 
         const collected: FeedItem[] = [];
         for (const e of created) {
           const blk = await e.getBlock();
           const a = (e as unknown as { args: unknown[] }).args;
-          const [id, resourceId, user, , , amount] = a as [bigint, bigint, string, bigint, bigint, bigint];
+          const [commitment, , resourceId] = a as [bigint, bigint, bigint];
           collected.push({
             key: `bk-${e.transactionHash}-${e.index}`,
             ts: Number(blk.timestamp),
             kind: "booking",
-            title: `Booking #${id} on resource #${resourceId}`,
-            detail: `${shortAddr(user)} paid ${fmtEth(amount)}`,
+            title: `Private Booking on resource #${resourceId}`,
+            detail: `Commitment: ${commitment.toString().slice(0, 10)}...`,
             txHash: e.transactionHash,
           });
         }
@@ -80,13 +81,13 @@ export default function ActivityPage() {
         for (const e of votes) {
           const blk = await e.getBlock();
           const a = (e as unknown as { args: unknown[] }).args;
-          const [pid, voter, support] = a as [bigint, string, boolean];
+          const [pid, , support] = a as [bigint, string, boolean];
           collected.push({
             key: `vt-${e.transactionHash}-${e.index}`,
             ts: Number(blk.timestamp),
             kind: "vote",
             title: `Vote on proposal #${pid}`,
-            detail: `${shortAddr(voter)} voted ${support ? "yes" : "no"}`,
+            detail: `Anonymous user voted ${support ? "yes" : "no"}`,
             txHash: e.transactionHash,
           });
         }
@@ -119,13 +120,26 @@ export default function ActivityPage() {
         for (const e of rep) {
           const blk = await e.getBlock();
           const a = (e as unknown as { args: unknown[] }).args;
-          const [user, , score] = a as [string, bigint, bigint];
+          const [user, commitment] = a as [string, bigint];
           collected.push({
             key: `rp-${e.transactionHash}-${e.index}`,
             ts: Number(blk.timestamp),
             kind: "reputation",
-            title: `Reputation +1`,
-            detail: `${shortAddr(user)} now has ${score} pts`,
+            title: `Reputation Claimed`,
+            detail: `${shortAddr(user)} claimed with proof ${commitment.toString().slice(0, 10)}...`,
+            txHash: e.transactionHash,
+          });
+        }
+        for (const e of idents) {
+          const blk = await e.getBlock();
+          const a = (e as unknown as { args: unknown[] }).args;
+          const [user, commitment, index] = a as [string, bigint, bigint];
+          collected.push({
+            key: `id-${e.transactionHash}-${e.index}`,
+            ts: Number(blk.timestamp),
+            kind: "identity",
+            title: `ZKP Identity Registered`,
+            detail: `${shortAddr(user)} added commitment #${index}`,
             txHash: e.transactionHash,
           });
         }
@@ -141,13 +155,13 @@ export default function ActivityPage() {
 
     // Live listeners
     const onBookingCreated = (...args: unknown[]) => {
-      const [id, resourceId, user, , , amount] = args as [bigint, bigint, string, bigint, bigint, bigint, unknown];
+      const [commitment, nullifier, resourceId] = args as [bigint, bigint, bigint];
       setItems((prev) => prependItem(prev, {
-        key: `bk-${Date.now()}-${id}`,
+        key: `bk-${Date.now()}-${commitment}`,
         ts: Math.floor(Date.now() / 1000),
         kind: "booking",
-        title: `Booking #${id} on resource #${resourceId}`,
-        detail: `${shortAddr(user)} paid ${fmtEth(amount)}`,
+        title: `Private Booking on resource #${resourceId}`,
+        detail: `Commitment: ${commitment.toString().slice(0, 10)}...`,
       }));
     };
     const onBookingCancelled = (...args: unknown[]) => {
@@ -171,13 +185,13 @@ export default function ActivityPage() {
       }));
     };
     const onVoted = (...args: unknown[]) => {
-      const [pid, voter, support] = args as [bigint, string, boolean, unknown];
+      const [pid, , support] = args as [bigint, string, boolean, unknown];
       setItems((prev) => prependItem(prev, {
-        key: `vt-${Date.now()}-${pid}-${voter}`,
+        key: `vt-${Date.now()}-${pid}`,
         ts: Math.floor(Date.now() / 1000),
         kind: "vote",
         title: `Vote on proposal #${pid}`,
-        detail: `${shortAddr(voter)} voted ${support ? "yes" : "no"}`,
+        detail: `Anonymous user voted ${support ? "yes" : "no"}`,
       }));
     };
     const onResourceAdded = (...args: unknown[]) => {
@@ -191,13 +205,23 @@ export default function ActivityPage() {
       }));
     };
     const onReputation = (...args: unknown[]) => {
-      const [user, , score] = args as [string, bigint, bigint, unknown];
+      const [user, commitment] = args as [string, bigint, unknown];
       setItems((prev) => prependItem(prev, {
-        key: `rp-${Date.now()}-${user}-${score}`,
+        key: `rp-${Date.now()}-${user}-${commitment}`,
         ts: Math.floor(Date.now() / 1000),
         kind: "reputation",
-        title: `Reputation +1`,
-        detail: `${shortAddr(user)} now has ${score} pts`,
+        title: `Reputation Claimed`,
+        detail: `${shortAddr(user)} claimed with proof ${commitment.toString().slice(0, 10)}...`,
+      }));
+    };
+    const onIdentity = (...args: unknown[]) => {
+      const [user, commitment, index] = args as [string, bigint, bigint, unknown];
+      setItems((prev) => prependItem(prev, {
+        key: `id-${Date.now()}-${user}-${commitment}`,
+        ts: Math.floor(Date.now() / 1000),
+        kind: "identity",
+        title: `ZKP Identity Registered`,
+        detail: `${shortAddr(user)} added commitment #${index}`,
       }));
     };
 
@@ -206,7 +230,8 @@ export default function ActivityPage() {
     contract.on("ProposalCreated", onProposalCreated);
     contract.on("Voted", onVoted);
     contract.on("ResourceAdded", onResourceAdded);
-    contract.on("ReputationEarned", onReputation);
+    contract.on("ReputationClaimed", onReputation);
+    contract.on("IdentityRegistered", onIdentity);
     setLive(true);
 
     return () => {
@@ -215,7 +240,8 @@ export default function ActivityPage() {
       contract.off("ProposalCreated", onProposalCreated);
       contract.off("Voted", onVoted);
       contract.off("ResourceAdded", onResourceAdded);
-      contract.off("ReputationEarned", onReputation);
+      contract.off("ReputationClaimed", onReputation);
+      contract.off("IdentityRegistered", onIdentity);
       setLive(false);
     };
   }, [contract, provider]);

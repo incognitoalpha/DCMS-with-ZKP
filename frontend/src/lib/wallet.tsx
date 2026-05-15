@@ -8,7 +8,14 @@ import {
   useMemo,
   useState,
 } from "react";
-import { BrowserProvider, Contract, JsonRpcSigner, Eip1193Provider, InterfaceAbi } from "ethers";
+import {
+  BrowserProvider,
+  Contract,
+  JsonRpcSigner,
+  Eip1193Provider,
+  InterfaceAbi,
+  getAddress,
+} from "ethers";
 import dcmsArtifact from "./contract/DCMS.json";
 import dcmsAddress from "./contract/address.json";
 
@@ -26,6 +33,7 @@ declare global {
 
 type WalletState = {
   address: string | null;
+  adminAddress: string | null;
   chainId: number | null;
   isAdmin: boolean;
   connecting: boolean;
@@ -48,6 +56,7 @@ const CONTRACT_ABI = (dcmsArtifact as { abi: InterfaceAbi }).abi;
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [address, setAddress] = useState<string | null>(null);
+  const [adminAddress, setAdminAddress] = useState<string | null>(null);
   const [chainId, setChainId] = useState<number | null>(null);
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const [signer, setSigner] = useState<JsonRpcSigner | null>(null);
@@ -57,9 +66,12 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   const buildContract = useCallback(
-    async (eth: Eip1193): Promise<{ p: BrowserProvider; s: JsonRpcSigner; c: Contract }> => {
+    async (
+      eth: Eip1193,
+      account?: string
+    ): Promise<{ p: BrowserProvider; s: JsonRpcSigner; c: Contract }> => {
       const p = new BrowserProvider(eth as unknown as Eip1193Provider);
-      const s = await p.getSigner();
+      const s = account ? await p.getSigner(account) : await p.getSigner();
       const c = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, s);
       return { p, s, c };
     },
@@ -67,17 +79,21 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   );
 
   const refreshAdmin = useCallback(async () => {
-    if (!contract || !address) {
+    if (!provider) {
+      setAdminAddress(null);
       setIsAdmin(false);
       return;
     }
     try {
-      const adminAddr: string = await contract.admin();
-      setIsAdmin(adminAddr.toLowerCase() === address.toLowerCase());
+      const readContract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+      const adminAddr = getAddress(await readContract.admin());
+      setAdminAddress(adminAddr);
+      setIsAdmin(address !== null && getAddress(address) === adminAddr);
     } catch {
+      setAdminAddress(null);
       setIsAdmin(false);
     }
-  }, [contract, address]);
+  }, [provider, address]);
 
   const connect = useCallback(async () => {
     setError(null);
@@ -91,11 +107,12 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       const accounts = (await eth.request({ method: "eth_requestAccounts" })) as string[];
       const cidHex = (await eth.request({ method: "eth_chainId" })) as string;
       const cid = parseInt(cidHex, 16);
-      const { p, s, c } = await buildContract(eth);
+      const activeAccount = accounts[0] ?? null;
+      const { p, s, c } = await buildContract(eth, activeAccount ?? undefined);
       setProvider(p);
       setSigner(s);
       setContract(c);
-      setAddress(accounts[0] ?? null);
+      setAddress(activeAccount);
       setChainId(cid);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to connect";
@@ -123,7 +140,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         if (accounts.length > 0) {
           const cidHex = (await eth.request({ method: "eth_chainId" })) as string;
           const cid = parseInt(cidHex, 16);
-          const { p, s, c } = await buildContract(eth);
+          const { p, s, c } = await buildContract(eth, accounts[0]);
           setProvider(p);
           setSigner(s);
           setContract(c);
@@ -145,7 +162,21 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       if (accs.length === 0) {
         disconnect();
       } else {
-        setAddress(accs[0]);
+        (async () => {
+          try {
+            const { p, s, c } = await buildContract(eth, accs[0]);
+            setProvider(p);
+            setSigner(s);
+            setContract(c);
+            setAddress(accs[0]);
+          } catch {
+            setAddress(accs[0]);
+            setSigner(null);
+            setContract(null);
+            setProvider(null);
+            setIsAdmin(false);
+          }
+        })();
       }
     };
     const handleChain = (...args: unknown[]) => {
@@ -183,6 +214,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       isAdmin,
       connecting,
       error,
+      adminAddress,
       provider,
       signer,
       contract,
@@ -192,7 +224,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       disconnect,
       refreshAdmin,
     }),
-    [address, chainId, isAdmin, connecting, error, provider, signer, contract, connect, disconnect, refreshAdmin]
+    [address, adminAddress, chainId, isAdmin, connecting, error, provider, signer, contract, connect, disconnect, refreshAdmin]
   );
 
   return <WalletCtx.Provider value={value}>{children}</WalletCtx.Provider>;

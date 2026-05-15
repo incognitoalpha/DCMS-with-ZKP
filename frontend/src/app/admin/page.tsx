@@ -15,7 +15,7 @@ type Resource = {
 };
 
 export default function AdminPage() {
-  const { contract, address, isAdmin, connect } = useWallet();
+  const { contract, address, adminAddress, isAdmin, connect } = useWallet();
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
@@ -97,6 +97,10 @@ export default function AdminPage() {
         <p className="mt-2 text-forest-700/70">
           The admin is the wallet that deployed the contract. You are signed in as a regular user.
         </p>
+        <div className="mt-4 space-y-1 text-sm text-forest-700/80">
+          <div>Connected wallet: <span className="font-mono">{address ?? "not connected"}</span></div>
+          <div>Contract admin: <span className="font-mono">{adminAddress ?? "unavailable"}</span></div>
+        </div>
       </div>
     );
   }

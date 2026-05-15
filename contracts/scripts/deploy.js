@@ -13,6 +13,26 @@ async function main() {
   const address = await dcms.getAddress();
   console.log(`DCMS deployed at: ${address}`);
 
+  const VotingVerifier = await ethers.getContractFactory("VotingVerifier");
+  const votingVerifier = await VotingVerifier.deploy();
+  await votingVerifier.waitForDeployment();
+  
+  const BookingVerifier = await ethers.getContractFactory("BookingVerifier");
+  const bookingVerifier = await BookingVerifier.deploy();
+  await bookingVerifier.waitForDeployment();
+  
+  const ReputationVerifier = await ethers.getContractFactory("ReputationVerifier");
+  const reputationVerifier = await ReputationVerifier.deploy();
+  await reputationVerifier.waitForDeployment();
+  
+  const txSet = await dcms.setVerifiers(
+    await votingVerifier.getAddress(),
+    await bookingVerifier.getAddress(),
+    await reputationVerifier.getAddress()
+  );
+  await txSet.wait();
+  console.log("Verifiers deployed and set in DCMS");
+
   // Seed a few sample resources so the demo has something to show.
   const seed = [
     ["Lakeview Cabin", "Two-bed cabin facing the lake", ethers.parseEther("0.01")],

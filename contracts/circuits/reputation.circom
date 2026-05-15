@@ -1,5 +1,8 @@
 pragma circom 2.0.0;
 
+include "../node_modules/circomlib/circuits/poseidon.circom";
+include "../node_modules/circomlib/circuits/comparators.circom";
+
 template ReputationCircuit() {
     signal input threshold;
     signal input commitment;
@@ -13,21 +16,11 @@ template ReputationCircuit() {
 
     commitment === commitmentHash.out;
 
-    component gte = GEq(32);
+    component gte = GreaterEqThan(32);
     gte.in[0] <== score;
     gte.in[1] <== threshold;
 
     gte.out === 1;
-}
-
-template GEq(n) {
-    signal input in[2];
-    signal output out;
-
-    component num2bits = Num2Bits(n+1);
-    num2bits.in <== in[0] - in[1] + (1 << n);
-
-    out <== 1;
 }
 
 component main {public [threshold, commitment]} = ReputationCircuit();

@@ -4,8 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useWallet, shortAddr } from "@/lib/wallet";
 import { fmtTime, parseRevert } from "@/lib/format";
 import { toast } from "@/components/Toast";
-import { hasStoredIdentity, generateVotingNullifier, getZKPIdentity } from "@/lib/zkp";
-import { createSemaphoreIdentity } from "@/lib/semaphore";
+import { hasStoredIdentity, getZKPIdentity, generateVotingProof, formatProofForContract } from "@/lib/zkp";
+import { createSemaphoreIdentity, generateMerkleProof } from "@/lib/semaphore";
 
 type Proposal = {
   id: bigint;
@@ -27,9 +27,7 @@ export default function GovernancePage() {
   const [desc, setDesc] = useState("");
   const [days, setDays] = useState(3);
   const [hasZKP, setHasZKP] = useState(false);
-  const [zkpVoting, setZkpVoting] = useState(false);
 
-  // Check ZKP identity on load
   useEffect(() => {
     setHasZKP(hasStoredIdentity());
   }, []);
@@ -41,29 +39,35 @@ export default function GovernancePage() {
       const list: Proposal[] = await contract.getAllProposals();
       const sorted = [...list].sort((a, b) => Number(b.id) - Number(a.id));
       setProposals(sorted);
-      if (address) {
-        const flags: Record<string, boolean> = {};
-        await Promise.all(
-          sorted.map(async (p) => {
-            try {
-              flags[String(p.id)] = await contract.hasVoted(p.id, address);
-            } catch {
-              flags[String(p.id)] = false;
-            }
-          })
-        );
-        setVoted(flags);
-      }
+      
+      // Removed the plaintext hasVoted check since it's anonymous now.
     } catch (err) {
       toast(parseRevert(err), "error");
     } finally {
       setLoading(false);
     }
-  }, [contract, address]);
+  }, [contract]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  async function registerIdentity() {
+    if (!contract) return;
+    try {
+      setBusy(true);
+      const identity = await createSemaphoreIdentity();
+      const tx = await contract.registerIdentity(identity.commitment);
+      toast("Registering identity on-chain...");
+      await tx.wait();
+      setHasZKP(true);
+      toast("Identity registered! You can now vote anonymously.", "success");
+    } catch (err) {
+      toast(parseRevert(err), "error");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function createProposal() {
     if (!contract) return;
@@ -91,10 +95,39 @@ export default function GovernancePage() {
     if (!contract) return;
     setActionId(String(id));
     try {
-      const tx = await contract.vote(id, support);
-      toast("Voting…");
+      const identity = getZKPIdentity();
+      if (!identity) {
+        toast("No ZKP identity found", "error");
+        return;
+      }
+
+      toast("Generating Zero-Knowledge Proof...");
+      
+      const root = await contract.getIdentityTreeRoot();
+      const merkle = await generateMerkleProof(0); // Mock leaf index for demo
+      
+      const secret = identity.trapdoor; // Using trapdoor as the secret for the nullifier hash
+      
+      const proof = await generateVotingProof(
+        id,
+        identity.trapdoor,
+        identity.nullifier,
+        secret,
+        merkle.pathIndices,
+        merkle.pathElements,
+        root
+      );
+      
+      const [a, b, c] = formatProofForContract(proof);
+      const nullifierHash = proof.publicSignals[1];
+
+      const tx = await contract.vote(id, support, nullifierHash, a, b, c);
+      toast("Proof submitted, waiting for confirmation…");
       await tx.wait();
-      toast(`Voted ${support ? "yes" : "no"} ✓`, "success");
+      toast(`Voted ${support ? "yes" : "no"} anonymously ✓`, "success");
+      
+      // Mark locally as voted so UI updates
+      setVoted(prev => ({...prev, [String(id)]: true}));
       load();
     } catch (err) {
       toast(parseRevert(err), "error");
@@ -135,11 +168,10 @@ export default function GovernancePage() {
       <div>
         <h1 className="font-display text-3xl text-forest-800">Governance</h1>
         <p className="text-forest-700/70">
-          Propose changes to the cottage. One wallet, one vote — recorded on-chain.
+          Propose changes to the cottage. One wallet, one vote — recorded on-chain anonymously via ZKP.
         </p>
       </div>
 
-      {/* ZKP Identity Registration Section */}
       {!hasZKP && address && (
         <div className="card border-forest-300 space-y-3">
           <div className="flex items-center gap-2">
@@ -150,36 +182,22 @@ export default function GovernancePage() {
             Register a Zero-Knowledge identity to vote anonymously. Your wallet address will never be recorded.
           </p>
           <button
-            onClick={() => {
-              createSemaphoreIdentity();
-              setHasZKP(true);
-              toast("ZKP Identity created! You can now vote anonymously.", "success");
-            }}
+            onClick={registerIdentity}
+            disabled={busy}
             className="btn-primary"
           >
-            Generate Anonymous Identity
+            {busy ? "Registering..." : "Generate & Register Identity"}
           </button>
         </div>
       )}
 
-      {/* ZKP Voting Toggle */}
       {hasZKP && (
         <div className="card flex items-center justify-between border-forest-300">
           <div className="flex items-center gap-2">
             <span className="text-xl">🛡</span>
             <span className="font-display text-forest-800">Privacy Shield Active</span>
           </div>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={zkpVoting}
-              onChange={(e) => setZkpVoting(e.target.checked)}
-              className="sr-only"
-            />
-            <span className={`chip ${zkpVoting ? "bg-forest-100 text-forest-700" : ""}`}>
-              {zkpVoting ? "Anonymous Mode ON" : "Use Regular Mode"}
-            </span>
-          </label>
+          <span className="chip bg-forest-100 text-forest-700">Anonymous Mode ON</span>
         </div>
       )}
 
@@ -266,7 +284,7 @@ export default function GovernancePage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {!closed && !voted[String(p.id)] && (
+                  {!closed && !voted[String(p.id)] && hasZKP && (
                     <>
                       <button
                         onClick={() => vote(p.id, true)}

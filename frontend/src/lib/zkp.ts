@@ -1,80 +1,60 @@
-/**
- * ZKP Library - Zero Knowledge Proof generation for DCMS
- *
- * Provides functions to generate ZK proofs for:
- * - Anonymous voting (Semaphore-style)
- * - Private bookings
- * - Reputation threshold verification
- */
+import * as snarkjs from "snarkjs";
+import { buildPoseidon } from "circomlibjs";
 
-// Poseidon hash simulation (in production would use WASM from snarkjs)
-export function poseidonHash(inputs: bigint[]): bigint {
-  // Simplified hash - in production use actual Poseidon
-  const encoded = inputs.map(x => x.toString()).join('-');
-  const hash = BigInt('0x' + Buffer.from(encoded).toString('hex').slice(0, 64));
-  return hash % BigInt('0x21888242871839275222246405745257275088548364400416034343698204186575808495617');
+let poseidonInstance: any = null;
+
+export async function getPoseidon() {
+  if (!poseidonInstance) {
+    poseidonInstance = await buildPoseidon();
+  }
+  return poseidonInstance;
 }
 
-/**
- * Generate identity commitment for Semaphore-style anonymous voting
- */
-export function generateIdentityCommitment(
+export async function poseidonHash(inputs: bigint[]): Promise<bigint> {
+  const p = await getPoseidon();
+  const hash = p(inputs);
+  return BigInt(p.F.toString(hash));
+}
+
+export async function generateIdentityCommitment(
   identityTrapdoor: bigint,
   identityNullifier: bigint
-): bigint {
-  return poseidonHash([identityTrapdoor, identityNullifier]);
+): Promise<bigint> {
+  return await poseidonHash([identityTrapdoor, identityNullifier]);
 }
 
-/**
- * Generate voting nullifier to prevent double-voting
- */
-export function generateVotingNullifier(
+export async function generateVotingNullifier(
   identityNullifier: bigint,
   proposalId: bigint,
   secret: bigint
-): bigint {
-  return poseidonHash([identityNullifier, proposalId, secret]);
+): Promise<bigint> {
+  return await poseidonHash([identityNullifier, proposalId, secret]);
 }
 
-/**
- * Generate booking commitment
- * hash(secret, resourceId, startTime, endTime, nonce)
- */
-export function generateBookingCommitment(
+export async function generateBookingCommitment(
   secret: bigint,
   resourceId: bigint,
   startTime: bigint,
   endTime: bigint,
   nonce: bigint
-): bigint {
-  return poseidonHash([secret, resourceId, startTime, endTime, nonce]);
+): Promise<bigint> {
+  return await poseidonHash([secret, resourceId, startTime, endTime, nonce]);
 }
 
-/**
- * Generate booking nullifier to prevent double-booking
- */
-export function generateBookingNullifier(
+export async function generateBookingNullifier(
   secret: bigint,
   nonce: bigint
-): bigint {
-  return poseidonHash([secret, nonce]);
+): Promise<bigint> {
+  return await poseidonHash([secret, nonce]);
 }
 
-/**
- * Generate reputation commitment
- * hash(secret, score)
- */
-export function generateReputationCommitment(
+export async function generateReputationCommitment(
   secret: bigint,
   score: bigint
-): bigint {
-  return poseidonHash([secret, score]);
+): Promise<bigint> {
+  return await poseidonHash([secret, score]);
 }
 
-/**
- * ZKP Proof generation (simulated for demo)
- * In production, this would use snarkjs with compiled circuits
- */
 export interface ZKProof {
   a: [bigint, bigint];
   b: [[bigint, bigint], [bigint, bigint]];
@@ -83,25 +63,28 @@ export interface ZKProof {
 }
 
 export async function generateVotingProof(
+  proposalId: bigint,
   identityTrapdoor: bigint,
   identityNullifier: bigint,
-  proposalId: bigint,
   secret: bigint,
-  treeRoot: bigint,
-  pathElements: bigint[],
-  pathIndices: number[]
+  treePathIndices: number[],
+  treePathElements: bigint[],
+  scope: bigint
 ): Promise<ZKProof> {
-  // Simulated proof generation
-  // In production: use snarkjs.fullProve with voting.circom circuit
-
-  const nullifier = generateVotingNullifier(identityNullifier, proposalId, secret);
-
-  return {
-    a: [BigInt(1), BigInt(2)],
-    b: [[BigInt(1), BigInt(2)], [BigInt(3), BigInt(4)]],
-    c: [BigInt(1), BigInt(1)],
-    publicSignals: [proposalId, nullifier, treeRoot]
-  };
+  const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    {
+      proposalId,
+      scope,
+      identityTrapdoor,
+      identityNullifier,
+      secret,
+      treePathIndices,
+      treePathElements,
+    },
+    "/zk/voting.wasm",
+    "/zk/voting_final.zkey"
+  );
+  return formatSnarkjsProof(proof, publicSignals);
 }
 
 export async function generateBookingProof(
@@ -111,15 +94,23 @@ export async function generateBookingProof(
   endTime: bigint,
   nonce: bigint
 ): Promise<ZKProof> {
-  const commitment = generateBookingCommitment(secret, resourceId, startTime, endTime, nonce);
-  const nullifier = generateBookingNullifier(secret, nonce);
+  const commitment = await generateBookingCommitment(secret, resourceId, startTime, endTime, nonce);
+  const nullifier = await generateBookingNullifier(secret, nonce);
 
-  return {
-    a: [BigInt(1), BigInt(2)],
-    b: [[BigInt(1), BigInt(2)], [BigInt(3), BigInt(4)]],
-    c: [BigInt(1), BigInt(1)],
-    publicSignals: [commitment, nullifier, resourceId, startTime, endTime]
-  };
+  const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    {
+      commitment,
+      nullifier,
+      secret,
+      resourceId,
+      startTime,
+      endTime,
+      bookingNonce: nonce,
+    },
+    "/zk/booking.wasm",
+    "/zk/booking_final.zkey"
+  );
+  return formatSnarkjsProof(proof, publicSignals);
 }
 
 export async function generateReputationProof(
@@ -127,55 +118,48 @@ export async function generateReputationProof(
   score: bigint,
   threshold: bigint
 ): Promise<ZKProof> {
-  const commitment = generateReputationCommitment(secret, score);
+  const commitment = await generateReputationCommitment(secret, score);
 
+  const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    {
+      threshold,
+      commitment,
+      secret,
+      score,
+    },
+    "/zk/reputation.wasm",
+    "/zk/reputation_final.zkey"
+  );
+  return formatSnarkjsProof(proof, publicSignals);
+}
+
+function formatSnarkjsProof(proof: any, publicSignals: any[]): ZKProof {
   return {
-    a: [BigInt(1), BigInt(2)],
-    b: [[BigInt(1), BigInt(2)], [BigInt(3), BigInt(4)]],
-    c: [BigInt(1), BigInt(1)],
-    publicSignals: [threshold, commitment]
+    a: [BigInt(proof.pi_a[0]), BigInt(proof.pi_a[1])],
+    b: [
+      [BigInt(proof.pi_b[0][1]), BigInt(proof.pi_b[0][0])],
+      [BigInt(proof.pi_b[1][1]), BigInt(proof.pi_b[1][0])],
+    ],
+    c: [BigInt(proof.pi_c[0]), BigInt(proof.pi_c[1])],
+    publicSignals: publicSignals.map((x: any) => BigInt(x)),
   };
 }
 
-/**
- * Verify ZK proof (simulated - production would use snarkjs.groth16.verify)
- */
-export async function verifyProof(
-  proof: ZKProof,
-  verificationKey: any
-): Promise<boolean> {
-  // In production: return await snarkjs.groth16.verify(vk, publicSignals, proof);
-  return true;
-}
-
-/**
- * Convert proof to contract-friendly format
- */
-export function formatProofForContract(proof: ZKProof): string[] {
+export function formatProofForContract(proof: ZKProof): any[] {
   return [
-    proof.a[0].toString(),
-    proof.a[1].toString(),
-    proof.b[0][0].toString(),
-    proof.b[0][1].toString(),
-    proof.b[1][0].toString(),
-    proof.b[1][1].toString(),
-    proof.c[0].toString(),
-    proof.c[1].toString()
+    proof.a,
+    proof.b,
+    proof.c
   ];
 }
 
-/**
- * Generate random secret for ZKP identity
- */
 export function generateRandomSecret(): bigint {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
-  return BigInt('0x' + Buffer.from(array).toString('hex'));
+  const hex = Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+  return BigInt('0x' + hex);
 }
 
-/**
- * Store ZKP identity in localStorage
- */
 export function storeZKPIdentity(identity: {
   trapdoor: bigint;
   nullifier: bigint;
@@ -190,15 +174,10 @@ export function storeZKPIdentity(identity: {
   }
 }
 
-/**
- * Retrieve ZKP identity from localStorage
- */
 export function getZKPIdentity(): { trapdoor: bigint; nullifier: bigint; commitment: bigint } | null {
   if (typeof window === 'undefined') return null;
-
   const stored = localStorage.getItem('dcms_zkp_identity');
   if (!stored) return null;
-
   const data = JSON.parse(stored);
   return {
     trapdoor: BigInt(data.trapdoor),
@@ -207,16 +186,10 @@ export function getZKPIdentity(): { trapdoor: bigint; nullifier: bigint; commitm
   };
 }
 
-/**
- * Check if user has ZKP identity registered
- */
 export function hasStoredIdentity(): boolean {
   return getZKPIdentity() !== null;
 }
 
-/**
- * Clear ZKP identity (for testing/reset)
- */
 export function clearZKPIdentity() {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('dcms_zkp_identity');
