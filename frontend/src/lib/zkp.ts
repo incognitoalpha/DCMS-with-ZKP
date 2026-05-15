@@ -67,19 +67,18 @@ export async function generateVotingProof(
   identityTrapdoor: bigint,
   identityNullifier: bigint,
   secret: bigint,
-  treePathIndices: number[],
-  treePathElements: bigint[],
   scope: bigint
 ): Promise<ZKProof> {
+  const nullifierHash = await generateVotingNullifier(identityNullifier, proposalId, secret);
+
   const { proof, publicSignals } = await snarkjs.groth16.fullProve(
     {
       proposalId,
+      nullifierHash,
       scope,
       identityTrapdoor,
       identityNullifier,
       secret,
-      treePathIndices,
-      treePathElements,
     },
     "/zk/voting.wasm",
     "/zk/voting_final.zkey"

@@ -63,6 +63,7 @@ contract DCMS {
     mapping(uint256 => Proposal) private proposals;
 
     mapping(uint256 => uint256[]) private bookingsByResource;
+    mapping(uint256 => uint256) private bookingIdByCommitment;
 
     // ---------------------------------------------------------------------
     // ZKP State
@@ -266,6 +267,7 @@ contract DCMS {
     function vote(
         uint256 proposalId,
         bool support,
+        uint256 identityCommitment,
         uint256 nullifier,
         uint256[2] calldata a,
         uint256[2][2] calldata b,
@@ -273,10 +275,11 @@ contract DCMS {
     ) external {
         require(proposals[proposalId].id != 0, "DCMS: no such proposal");
         require(block.timestamp <= proposals[proposalId].deadline, "DCMS: voting closed");
+        require(identityCommitments[identityCommitment], "DCMS: identity not registered");
         require(!nullifiers[nullifier], "DCMS: already voted");
         require(votingVerifier != address(0), "DCMS: verifier not set");
 
-        uint256[3] memory inputs = [proposalId, nullifier, identityTreeRoot];
+        uint256[3] memory inputs = [proposalId, nullifier, identityCommitment];
         require(IVotingVerifier(votingVerifier).verifyProof(a, b, c, inputs), "DCMS: invalid ZK proof");
 
         nullifiers[nullifier] = true;
@@ -338,8 +341,41 @@ contract DCMS {
             cancelled: false
         });
 
+        bookingIdByCommitment[commitment] = id;
         bookingsByResource[resourceId].push(id);
         emit BookingCreated(commitment, nullifier, resourceId);
+    }
+
+    function cancelBooking(
+        uint256 commitment,
+        uint256 nullifier,
+        uint256 resourceId,
+        uint256 startTime,
+        uint256 endTime,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c
+    ) external {
+        uint256 id = bookingIdByCommitment[commitment];
+        require(id != 0, "DCMS: no such booking");
+
+        Booking storage bk = bookings[id];
+        require(!bk.cancelled, "DCMS: already cancelled");
+        require(bk.resourceId == resourceId, "DCMS: resource mismatch");
+        require(bk.startTime == startTime && bk.endTime == endTime, "DCMS: time mismatch");
+        require(bookingVerifier != address(0), "DCMS: verifier not set");
+
+        uint256[5] memory inputs = [commitment, nullifier, resourceId, startTime, endTime];
+        require(IBookingVerifier(bookingVerifier).verifyProof(a, b, c, inputs), "DCMS: invalid ZK proof");
+
+        bk.cancelled = true;
+        uint256 refund = bk.amountPaid;
+        bk.amountPaid = 0;
+
+        (bool ok, ) = payable(msg.sender).call{value: refund}("");
+        require(ok, "DCMS: refund failed");
+
+        emit BookingCancelled(id, address(0));
     }
 
     function claimReputation(

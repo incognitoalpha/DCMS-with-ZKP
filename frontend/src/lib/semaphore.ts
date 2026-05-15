@@ -1,4 +1,4 @@
-import { generateRandomSecret, generateIdentityCommitment, storeZKPIdentity, getZKPIdentity, generateVotingNullifier } from './zkp';
+import { generateRandomSecret, generateIdentityCommitment, getZKPIdentity, generateVotingNullifier } from './zkp';
 
 export interface SemaphoreIdentity {
   trapdoor: bigint;
@@ -11,10 +11,7 @@ export async function createSemaphoreIdentity(): Promise<SemaphoreIdentity> {
   const nullifier = generateRandomSecret();
   const commitment = await generateIdentityCommitment(trapdoor, nullifier);
 
-  const identity: SemaphoreIdentity = { trapdoor, nullifier, commitment };
-
-  storeZKPIdentity(identity);
-  return identity;
+  return { trapdoor, nullifier, commitment };
 }
 
 export async function getOrCreateIdentity(): Promise<SemaphoreIdentity> {

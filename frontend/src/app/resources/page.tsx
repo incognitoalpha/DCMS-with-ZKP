@@ -245,7 +245,13 @@ function BookModal({
       // Save secret for claiming reputation later
       if (typeof window !== "undefined") {
          const existing = JSON.parse(localStorage.getItem("dcms_bookings") || "{}");
-         existing[commitment.toString()] = secret.toString();
+         existing[commitment.toString()] = {
+           secret: secret.toString(),
+           resourceId: resource.id.toString(),
+           startTime: String(startTs),
+           endTime: String(endTs),
+           nonce: nonce.toString(),
+         };
          localStorage.setItem("dcms_bookings", JSON.stringify(existing));
       }
 

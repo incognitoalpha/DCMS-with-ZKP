@@ -4,8 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useWallet, shortAddr } from "@/lib/wallet";
 import { fmtTime, parseRevert } from "@/lib/format";
 import { toast } from "@/components/Toast";
-import { hasStoredIdentity, getZKPIdentity, generateVotingProof, formatProofForContract } from "@/lib/zkp";
-import { createSemaphoreIdentity, generateMerkleProof } from "@/lib/semaphore";
+import { hasStoredIdentity, getZKPIdentity, generateVotingProof, formatProofForContract, storeZKPIdentity } from "@/lib/zkp";
+import { createSemaphoreIdentity } from "@/lib/semaphore";
 
 type Proposal = {
   id: bigint;
@@ -32,6 +32,21 @@ export default function GovernancePage() {
     setHasZKP(hasStoredIdentity());
   }, []);
 
+  const refreshIdentityStatus = useCallback(async () => {
+    const identity = getZKPIdentity();
+    if (!identity || !contract) {
+      setHasZKP(false);
+      return;
+    }
+
+    try {
+      const registered: boolean = await contract.identityCommitments(identity.commitment);
+      setHasZKP(registered);
+    } catch {
+      setHasZKP(false);
+    }
+  }, [contract]);
+
   const load = useCallback(async () => {
     if (!contract) return;
     setLoading(true);
@@ -39,14 +54,13 @@ export default function GovernancePage() {
       const list: Proposal[] = await contract.getAllProposals();
       const sorted = [...list].sort((a, b) => Number(b.id) - Number(a.id));
       setProposals(sorted);
-      
-      // Removed the plaintext hasVoted check since it's anonymous now.
+      refreshIdentityStatus();
     } catch (err) {
       toast(parseRevert(err), "error");
     } finally {
       setLoading(false);
     }
-  }, [contract]);
+  }, [contract, refreshIdentityStatus]);
 
   useEffect(() => {
     load();
@@ -57,10 +71,21 @@ export default function GovernancePage() {
     try {
       setBusy(true);
       const identity = await createSemaphoreIdentity();
-      const tx = await contract.registerIdentity(identity.commitment);
+      await contract.registerIdentity.staticCall(identity.commitment);
+
+      let gasLimit: bigint | undefined;
+      try {
+        const estimatedGas = await contract.registerIdentity.estimateGas(identity.commitment);
+        gasLimit = (estimatedGas * 12n) / 10n;
+      } catch {
+        gasLimit = 300_000n;
+      }
+
+      const tx = await contract.registerIdentity(identity.commitment, { gasLimit });
       toast("Registering identity on-chain...");
       await tx.wait();
-      setHasZKP(true);
+      storeZKPIdentity(identity);
+      await refreshIdentityStatus();
       toast("Identity registered! You can now vote anonymously.", "success");
     } catch (err) {
       toast(parseRevert(err), "error");
@@ -103,9 +128,6 @@ export default function GovernancePage() {
 
       toast("Generating Zero-Knowledge Proof...");
       
-      const root = await contract.getIdentityTreeRoot();
-      const merkle = await generateMerkleProof(0); // Mock leaf index for demo
-      
       const secret = identity.trapdoor; // Using trapdoor as the secret for the nullifier hash
       
       const proof = await generateVotingProof(
@@ -113,15 +135,13 @@ export default function GovernancePage() {
         identity.trapdoor,
         identity.nullifier,
         secret,
-        merkle.pathIndices,
-        merkle.pathElements,
-        root
+        identity.commitment
       );
       
       const [a, b, c] = formatProofForContract(proof);
       const nullifierHash = proof.publicSignals[1];
 
-      const tx = await contract.vote(id, support, nullifierHash, a, b, c);
+      const tx = await contract.vote(id, support, identity.commitment, nullifierHash, a, b, c);
       toast("Proof submitted, waiting for confirmation…");
       await tx.wait();
       toast(`Voted ${support ? "yes" : "no"} anonymously ✓`, "success");

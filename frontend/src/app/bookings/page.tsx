@@ -4,7 +4,13 @@ import { useEffect, useState, useCallback } from "react";
 import { useWallet } from "@/lib/wallet";
 import { fmtEth, fmtTime, parseRevert } from "@/lib/format";
 import { toast } from "@/components/Toast";
-import { hasStoredIdentity, generateReputationProof, formatProofForContract, generateReputationCommitment } from "@/lib/zkp";
+import {
+  hasStoredIdentity,
+  generateReputationProof,
+  formatProofForContract,
+  generateReputationCommitment,
+  generateBookingProof,
+} from "@/lib/zkp";
 
 type Booking = {
   id: bigint;
@@ -24,6 +30,27 @@ type Resource = {
   active: boolean;
 };
 
+type StoredBooking =
+  | string
+  | {
+      secret: string;
+      resourceId: string;
+      startTime: string;
+      endTime: string;
+      nonce: string;
+    };
+
+function getStoredSecret(stored: StoredBooking | undefined): string | null {
+  if (!stored) return null;
+  if (typeof stored === "string") return stored;
+  return stored.secret;
+}
+
+function getStoredBookingDetails(stored: StoredBooking | undefined) {
+  if (!stored || typeof stored === "string") return null;
+  return stored;
+}
+
 export default function BookingsPage() {
   const { contract, address, connect } = useWallet();
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -33,7 +60,7 @@ export default function BookingsPage() {
   const [reputation, setReputation] = useState<bigint>(0n);
   const [claimedMap, setClaimedMap] = useState<Record<string, boolean>>({});
   const [hasZKP, setHasZKP] = useState(false);
-  const [mySecrets, setMySecrets] = useState<Record<string, string>>({});
+  const [mySecrets, setMySecrets] = useState<Record<string, StoredBooking>>({});
 
   useEffect(() => {
     setHasZKP(hasStoredIdentity());
@@ -68,8 +95,8 @@ export default function BookingsPage() {
         const resourceId = event.args[2];
         
         // If we have the secret for this commitment in local storage, it's ours!
-        if (mySecrets[commitment]) {
-           const secretStr = mySecrets[commitment];
+        const secretStr = getStoredSecret(mySecrets[commitment]);
+        if (secretStr) {
            const repCommitment = await generateReputationCommitment(BigInt(secretStr), 1n);
            // We don't have startTime/endTime since they are private, so we mock them for UI.
            // In production, user stores startTime/endTime locally alongside the secret.
@@ -112,7 +139,7 @@ export default function BookingsPage() {
     if (!contract) return;
     setBusyId(String(commitment));
     try {
-      const secretStr = mySecrets[commitment.toString()];
+      const secretStr = getStoredSecret(mySecrets[commitment.toString()]);
       if (!secretStr) {
         toast("No secret found for this booking", "error");
         return;
@@ -130,6 +157,84 @@ export default function BookingsPage() {
       toast("Claim submitted...");
       await tx.wait();
       toast("Reputation +1 ✓", "success");
+      load();
+    } catch (err) {
+      toast(parseRevert(err), "error");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function cancel(commitment: bigint) {
+    if (!contract) return;
+    const commitmentStr = commitment.toString();
+    setBusyId(`cancel-${commitmentStr}`);
+    try {
+      const stored = getStoredBookingDetails(mySecrets[commitmentStr]);
+      if (!stored) {
+        toast("This older booking is missing local cancellation proof data", "error");
+        return;
+      }
+
+      toast("Generating cancellation proof...");
+      const proof = await generateBookingProof(
+        BigInt(stored.secret),
+        BigInt(stored.resourceId),
+        BigInt(stored.startTime),
+        BigInt(stored.endTime),
+        BigInt(stored.nonce)
+      );
+      const [a, b, c] = formatProofForContract(proof);
+      const nullifier = proof.publicSignals[1];
+
+      await contract.cancelBooking.staticCall(
+        commitment,
+        nullifier,
+        stored.resourceId,
+        stored.startTime,
+        stored.endTime,
+        a,
+        b,
+        c
+      );
+
+      let gasLimit: bigint | undefined;
+      try {
+        const estimatedGas = await contract.cancelBooking.estimateGas(
+          commitment,
+          nullifier,
+          stored.resourceId,
+          stored.startTime,
+          stored.endTime,
+          a,
+          b,
+          c
+        );
+        gasLimit = (estimatedGas * 12n) / 10n;
+      } catch {
+        gasLimit = 1_500_000n;
+      }
+
+      const tx = await contract.cancelBooking(
+        commitment,
+        nullifier,
+        stored.resourceId,
+        stored.startTime,
+        stored.endTime,
+        a,
+        b,
+        c,
+        { gasLimit }
+      );
+      toast("Cancellation submitted...");
+      await tx.wait();
+
+      const next = { ...mySecrets };
+      delete next[commitmentStr];
+      setMySecrets(next);
+      localStorage.setItem("dcms_bookings", JSON.stringify(next));
+
+      toast("Booking cancelled and refunded", "success");
       load();
     } catch (err) {
       toast(parseRevert(err), "error");
@@ -196,6 +301,7 @@ export default function BookingsPage() {
           {bookings.map((b) => {
             const r = resources.get(String(b.resourceId));
             const commitmentStr = b.id.toString();
+            const canCancel = getStoredBookingDetails(mySecrets[commitmentStr]) !== null;
             return (
               <div key={commitmentStr} className="card flex flex-wrap items-center gap-4">
                 <div className="flex-1 min-w-[220px]">
@@ -223,6 +329,17 @@ export default function BookingsPage() {
                     </button>
                   ) : (
                     <span className="chip">Reputation claimed ✓</span>
+                  )}
+                  {canCancel ? (
+                    <button
+                      onClick={() => cancel(b.id)}
+                      disabled={busyId === `cancel-${commitmentStr}`}
+                      className="btn-secondary"
+                    >
+                      {busyId === `cancel-${commitmentStr}` ? "Cancelling..." : "Cancel booking"}
+                    </button>
+                  ) : (
+                    <span className="chip">legacy booking: no cancel proof</span>
                   )}
                 </div>
               </div>
