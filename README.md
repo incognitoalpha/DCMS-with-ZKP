@@ -1,5 +1,4 @@
 # DCMS: Decentralized Cottage Management System
-## Enterprise-Grade Privacy-Preserving Resource Allocation Infrastructure
 
 DCMS is a sophisticated, decentralized framework for managing shared assets through a "Privacy by Design" lens. Built on the Ethereum ecosystem, it leverages Zero-Knowledge Cryptography (ZK-SNARKs) to ensure that resource bookings, user identities, and governance participation are cryptographically verifiable while maintaining strict confidentiality.
 
